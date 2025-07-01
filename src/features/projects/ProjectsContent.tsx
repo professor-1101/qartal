@@ -1,0 +1,303 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Icons } from "@/components/icons";
+import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
+import { DeleteProjectDialog } from "@/components/projects/delete-project-dialog";
+import { EditProjectDialog } from "@/components/projects/edit-project-dialog";
+import { ShareProjectDialog } from "@/components/projects/share-project-dialog";
+import { useI18n } from "@/i18n";
+import { FolderOpen } from "lucide-react";
+import DashboardPageHeader from "@/components/layout/DashboardPageHeader";
+
+interface Project {
+    id: string;
+    name: string;
+    description?: string;
+    createdAt: string;
+    updatedAt: string;
+    gherkinFiles: any[];
+    _count: {
+        gherkinFiles: number;
+        features: number;
+    };
+}
+
+export default function ProjectsContent() {
+    const { t } = useI18n();
+    const router = useRouter();
+    const { data: session, status } = useSession();
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+
+    // Fetch projects from API
+    const fetchProjects = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Check if user is authenticated
+            if (status === "loading") {
+                return; // Wait for session to load
+            }
+
+            if (status === "unauthenticated") {
+                router.push("/sign-in");
+                return;
+            }
+
+            const response = await fetch("/api/projects");
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    router.push("/sign-in");
+                    return;
+                }
+                throw new Error("Failed to fetch projects");
+            }
+
+            const data = await response.json();
+            setProjects(data);
+        } catch (err) {
+            console.error("Error fetching projects:", err);
+            setError("خطا در بارگذاری پروژه‌ها");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProjects();
+    }, [status]);
+
+    const handleCreateProject = async (projectData: { name: string; description?: string }) => {
+        try {
+            const response = await fetch("/api/projects", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(projectData),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to create project");
+            }
+
+            const newProject = await response.json();
+            setProjects(prev => [newProject, ...prev]);
+            setIsCreateDialogOpen(false);
+        } catch (err) {
+            console.error("Error creating project:", err);
+            // Handle error (show toast, etc.)
+        }
+    };
+
+    const handleDeleteProject = async (projectId: string) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete project");
+            }
+
+            setProjects(prev => prev.filter(p => p.id !== projectId));
+            setIsDeleteDialogOpen(false);
+            setSelectedProject(null);
+        } catch (err) {
+            console.error("Error deleting project:", err);
+            // Handle error (show toast, etc.)
+        }
+    };
+
+    const handleEditProject = async (projectId: string, projectData: { name: string; description?: string }) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(projectData),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update project");
+            }
+
+            const updatedProject = await response.json();
+            setProjects(prev => prev.map(p => p.id === projectId ? updatedProject : p));
+            setIsEditDialogOpen(false);
+            setSelectedProject(null);
+        } catch (err) {
+            console.error("Error updating project:", err);
+            // Handle error (show toast, etc.)
+        }
+    };
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString("fa-IR");
+    };
+
+    // Show loading while session is loading
+    if (status === "loading" || loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Icons.spinner className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
+
+    // Redirect to sign-in if not authenticated
+    if (status === "unauthenticated") {
+        router.replace("/sign-in");
+        return null;
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <p className="text-red-500 mb-4">{error}</p>
+                    <Button onClick={fetchProjects}>تلاش مجدد</Button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            <DashboardPageHeader
+                title={t("projects.title")}
+                description={t("projects.description")}
+                actions={
+                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                        <Icons.plus className="mr-2 h-4 w-4" />
+                        {t("projects.createNew")}
+                    </Button>
+                }
+            />
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {projects.map((project) => {
+                    return (
+                        <Card key={project.id} className="group hover:shadow-lg transition-shadow">
+                            <CardHeader className="pb-3">
+                                <div className="flex items-start justify-between">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-lg">{project.name}</CardTitle>
+                                        <CardDescription className="line-clamp-2">
+                                            {project.description || t("projects.noDescription")}
+                                        </CardDescription>
+                                    </div>
+                                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedProject(project);
+                                                setIsEditDialogOpen(true);
+                                            }}
+                                        >
+                                            <Icons.edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedProject(project);
+                                                setIsShareDialogOpen(true);
+                                            }}
+                                        >
+                                            <Icons.share className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedProject(project);
+                                                setIsDeleteDialogOpen(true);
+                                            }}
+                                        >
+                                            <Icons.trash className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                        <span>{t("projects.features")}</span>
+                                        <Badge variant="secondary">{project._count.features}</Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                        <span>{t("projects.lastUpdated")}</span>
+                                        <span>{formatDate(project.updatedAt)}</span>
+                                    </div>
+                                    <Button
+                                        className="w-full"
+                                        onClick={() => router.push(`/projects/${project.id}`)}
+                                    >
+                                        {t("projects.viewProject")}
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+            </div>
+
+            {projects.length === 0 && (
+                <div className="text-center py-12">
+                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                        <FolderOpen className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">{t("projects.noProjects")}</h3>
+                    <p className="text-sm mb-4">{t("projects.noProjectsDescription")}</p>
+                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                        <Icons.plus className="mr-2 h-4 w-4" />
+                        {t("projects.createFirst")}
+                    </Button>
+                </div>
+            )}
+
+            <CreateProjectDialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+                onProjectCreated={handleCreateProject}
+            />
+
+            <DeleteProjectDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                project={selectedProject as any}
+                onProjectDeleted={(projectId: string) => handleDeleteProject(projectId)}
+            />
+
+            <EditProjectDialog
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                project={selectedProject as any}
+                onProjectUpdated={(data: any) => selectedProject && handleEditProject(selectedProject.id, data)}
+            />
+
+            <ShareProjectDialog
+                open={isShareDialogOpen}
+                onOpenChange={setIsShareDialogOpen}
+                project={selectedProject as any}
+            />
+        </div>
+    );
+}
