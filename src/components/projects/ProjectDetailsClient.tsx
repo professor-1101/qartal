@@ -8,17 +8,17 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Edit,  FileCode, CheckSquare, GitBranch, EllipsisVertical, Share2, Trash2,  FileDown, FileText as FileTextIcon } from "lucide-react";
+import { Plus, Edit,  FileCode, CheckSquare, GitBranch, EllipsisVertical, Share2, Trash2, Download } from "lucide-react";
 import { Feature, Project } from '@/types/index';
 import { CreateFeatureSheet } from "@/components/projects/create-feature-sheet";
 import { ShareProjectDialog } from "@/components/projects/share-project-dialog";
 import { 
-    createBeautifulHTML, 
-    createPDFBlob, 
     createGherkinFromFeature, 
     createFeatureInfo, 
-    createProjectInfo 
+    createProjectInfo,
+    createBeautifulHTML
 } from "@/lib/export-utils";
+import { toast } from "sonner";
 
 import {
     Tooltip,
@@ -41,6 +41,14 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface ProjectDetailsClientProps {
     project: Project;
@@ -72,6 +80,7 @@ export default function ProjectDetailsClient({ project, features: initialFeature
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isShareDialogOpen, setShareDialogOpen] = React.useState(false);
     const [featureToDelete, setFeatureToDelete] = useState<Feature | null>(null);
+    const [exporting, setExporting] = useState(false);
 
     const handleDeleteFeature = async () => {
         if (!featureToDelete) return;
@@ -109,6 +118,7 @@ export default function ProjectDetailsClient({ project, features: initialFeature
     
     const handleExportZIP = async () => {
         try {
+            setExporting(true);
             const JSZip = (await import('jszip')).default;
             const zip = new JSZip();
             
@@ -116,10 +126,13 @@ export default function ProjectDetailsClient({ project, features: initialFeature
             const projectInfo = createProjectInfo(project, features);
             zip.file('project-info.txt', projectInfo);
             
-            // Create and add PDF
-            const htmlContent = createBeautifulHTML(project, features);
-            const pdfBlob = await createPDFBlob(htmlContent);
-            zip.file('project.pdf', pdfBlob);
+            // Create and add HTML file
+            const projectWithFeatures = {
+              ...project,
+              features: features
+            };
+            const htmlContent = createBeautifulHTML(projectWithFeatures, features);
+            zip.file(`${project.name}.html`, htmlContent);
             
             // Add each feature as a separate folder with .feature file
             features.forEach((feature) => {
@@ -144,30 +157,13 @@ export default function ProjectDetailsClient({ project, features: initialFeature
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
+            
+            toast.success('ZIP export completed successfully!');
         } catch (error) {
             console.error('خطا در export ZIP:', error);
-            alert('خطا در export ZIP. لطفاً دوباره تلاش کنید.');
-        }
-    };
-
-    const handleExportPDF = async () => {
-        try {
-            const htmlContent = createBeautifulHTML(project, features);
-            const pdfBlob = await createPDFBlob(htmlContent);
-            
-            // Download the PDF
-            const url = URL.createObjectURL(pdfBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${project.name}-shared-view.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-        } catch (error) {
-            console.error('خطا در export PDF:', error);
-            alert('خطا در export PDF. لطفاً دوباره تلاش کنید.');
+            toast.error('خطا در export ZIP');
+        } finally {
+            setExporting(false);
         }
     };
 
@@ -206,14 +202,46 @@ export default function ProjectDetailsClient({ project, features: initialFeature
                             <Share2 className="h-4 w-4 ml-1" />
                             اشتراک‌گذاری
                         </Button>
-                        <Button variant="outline" size="sm" onClick={handleExportZIP} title="دانلود فایل‌های .feature در ZIP">
-                            <FileDown className="w-4 h-4 ml-2 rtl:ml-0 rtl:mr-2" />
-                            خروجی ZIP
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={handleExportPDF} title="دانلود صفحه PDF با CSS کامل">
-                            <FileTextIcon className="w-4 h-4 ml-2 rtl:ml-0 rtl:mr-2" />
-                            خروجی PDF
-                        </Button>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" disabled={exporting}>
+                                    <Download className="w-4 h-4 ml-2 rtl:ml-0 rtl:mr-2" />
+                                    {exporting ? 'در حال export...' : 'خروجی'}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md" dir="rtl">
+                                <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                        <Download className="w-5 h-5" />
+                                        دانلود پروژه
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        فایل ZIP شامل تمام ویژگی‌ها، گزارش HTML و فایل‌های .feature دانلود خواهد شد
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex flex-col gap-4 py-4">
+                                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <Download className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-medium">فایل ZIP کامل</div>
+                                            <div className="text-sm text-muted-foreground">
+                                                شامل HTML، فایل‌های .feature و اطلاعات پروژه
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button 
+                                        onClick={handleExportZIP} 
+                                        className="w-full"
+                                        disabled={exporting}
+                                    >
+                                        <Download className="w-4 h-4 ml-2" />
+                                        {exporting ? 'در حال دانلود...' : 'دانلود ZIP'}
+                                    </Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
                 {/* Project Stats */}

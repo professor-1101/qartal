@@ -149,13 +149,13 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="container py-10" dir="rtl">
+    <div className="container" dir="rtl">
       <DashboardPageHeader
         title={t("settings.title")}
         description={t("settings.description")}
       />
 
-      <div className="flex gap-8">
+      <div className="flex gap-8 mt-8">
         {/* Vertical Sidebar Navigation */}
         <div className="w-64 flex-shrink-0">
           <nav className="space-y-2">
@@ -190,12 +190,12 @@ export default function SettingsPage() {
         <div className="flex-1">
           {activeTab === "profile" && (
             <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg text-right">
-                  <User className="h-4 w-4" />
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center gap-2 text-xl text-right">
+                  <User className="h-5 w-5" />
                   {t("userNav.profile")}
                 </CardTitle>
-                <CardDescription className="text-right">
+                <CardDescription className="text-right text-base">
                   {t("settings.profileDescription")}
                 </CardDescription>
               </CardHeader>
@@ -247,12 +247,12 @@ export default function SettingsPage() {
 
           {activeTab === "security" && (
             <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg text-right">
-                  <Shield className="h-4 w-4" />
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center gap-2 text-xl text-right">
+                  <Shield className="h-5 w-5" />
                   {t("settings.security")}
                 </CardTitle>
-                <CardDescription className="text-right">
+                <CardDescription className="text-right text-base">
                   {t("settings.securityDescription")}
                 </CardDescription>
               </CardHeader>

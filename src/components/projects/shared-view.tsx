@@ -8,7 +8,6 @@ import { Project, Feature, Scenario, Step, Rule, StepType } from '@/types/index'
 import { Card, CardContent} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
     Accordion,
@@ -17,9 +16,8 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 import {
-    FileText, GitBranch,  ExternalLink, Tag, Layers3, Combine, Users, Calendar,
-     BookText, ChevronsUpDown, 
-} from 'lucide-react';
+    FileText, GitBranch,  Tag, Layers3, Combine, Users, Calendar,
+     BookText, ChevronsUpDown} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -247,8 +245,8 @@ export function SharedProjectView({ project, features = [] }: SharedProjectViewP
 
     return (
         <div className="min-h-screen bg-muted/20">
-            {/* Sticky Header */}
-            <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur-sm">
+            {/* Fixed Header */}
+            <header className="border-b bg-background">
                 <div className="container mx-auto px-4 py-4">
                     <Card className="shadow-sm">
                         <CardContent className="p-4">
@@ -256,12 +254,6 @@ export function SharedProjectView({ project, features = [] }: SharedProjectViewP
                                 <div className="space-y-1.5">
                                     <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
                                     <p className="text-muted-foreground">{project.description}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button variant="outline" size="sm" className="shrink-0" onClick={() => window.open('https://qartal.ir', '_blank')}>
-                                        <ExternalLink className="w-4 h-4 ml-2 rtl:ml-0 rtl:mr-2" />
-                                        مشاهده در قارتال
-                                    </Button>
                                 </div>
                             </div>
                             <Separator className="my-3" />

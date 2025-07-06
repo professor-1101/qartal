@@ -1,6 +1,8 @@
 // FILE: src/types/entities.ts
 // This file centralizes core data entities like Project and User.
 
+import type { Feature } from './gherkin';
+
 export interface Project {
     id: string;
     name: string;
@@ -8,7 +10,7 @@ export interface Project {
     features: string[]; // Array of feature IDs
     createdAt: string;
     updatedAt: string;
-    status: "active" | "archived" | "draft";
+    status: string;
     authorName: string;
 }
 
@@ -18,4 +20,8 @@ export interface User {
     email: string;
     role: string;
     projects: string[]; // Array of project IDs
+}
+
+export interface ProjectWithFeatures extends Omit<Project, 'features'> {
+    features: Feature[];
 } 

@@ -1,13 +1,16 @@
-import type { Feature, Project } from '@/types';
+import { prisma } from './prisma';
+import type { Project, Feature } from '@/types';
+import type { ProjectWithFeatures } from '@/types/entities';
 
 // تابع مشترک برای ساخت HTML زیبا و مینیمال
-export const createBeautifulHTML = (project: Project, features: Feature[]) => {
+export const createBeautifulHTML = (project: import('@/types/entities').ProjectWithFeatures, features: import('@/types/gherkin').Feature[]) => {
     return `<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${project.name} - قارتال</title>
+    <title>${project.name} - گزارش پروژه</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazir-font@30.1.0/dist/font-face.min.css">
     <style>
         * {
             margin: 0;
@@ -16,27 +19,25 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-            line-height: 1.6;
-            color: #0f172a;
+            font-family: 'Vazir', 'Tahoma', sans-serif;
             background: #ffffff;
-            padding: 0;
-            direction: rtl;
-            text-align: right;
+            color: #0f172a;
+            line-height: 1.6;
             font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: #ffffff;
             padding: 40px 20px;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 30px;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
             border-bottom: 1px solid #e2e8f0;
         }
         
@@ -44,21 +45,25 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
             font-size: 2.5rem;
             font-weight: 700;
             color: #0f172a;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             letter-spacing: -0.025em;
+            line-height: 1.2;
         }
         
         .header p {
-            font-size: 1.1rem;
+            font-size: 1.125rem;
             color: #64748b;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .project-meta {
             display: flex;
             justify-content: center;
-            gap: 40px;
-            margin-top: 20px;
+            gap: 48px;
+            margin-top: 24px;
             flex-wrap: wrap;
         }
         
@@ -68,7 +73,7 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
         
         .meta-item .value {
             display: block;
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #0f172a;
             margin-bottom: 4px;
@@ -80,21 +85,21 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
         }
         
         .content {
-            margin-top: 40px;
+            margin-top: 48px;
         }
         
         .feature {
-            margin-bottom: 40px;
+            margin-bottom: 48px;
             border: 1px solid #e2e8f0;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             background: #ffffff;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
         
         .feature-header {
             background: #f8fafc;
-            padding: 20px;
+            padding: 24px;
             border-bottom: 1px solid #e2e8f0;
         }
         
@@ -112,14 +117,14 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
         }
         
         .feature-content {
-            padding: 20px;
+            padding: 24px;
         }
         
         .background {
             background: #f1f5f9;
-            padding: 16px;
-            margin-bottom: 20px;
-            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border-radius: 8px;
             border-right: 3px solid #3b82f6;
         }
         
@@ -127,14 +132,14 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
             color: #1e40af;
             font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         
         .rule {
             background: #fef3c7;
-            padding: 16px;
-            margin-bottom: 20px;
-            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border-radius: 8px;
             border-right: 3px solid #f59e0b;
         }
         
@@ -142,14 +147,14 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
             color: #92400e;
             font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         
         .scenario {
             background: #dbeafe;
-            padding: 16px;
-            margin-bottom: 16px;
-            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
             border-right: 3px solid #2563eb;
         }
         
@@ -157,47 +162,58 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
             color: #1e40af;
             font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         
         .step {
-            margin-bottom: 8px;
-            padding: 8px 12px;
+            margin-bottom: 12px;
+            padding: 12px 16px;
             background: #ffffff;
-            border-radius: 4px;
+            border-radius: 6px;
             border-right: 2px solid #10b981;
             font-size: 0.875rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
         
         .keyword {
             font-weight: 600;
             color: #059669;
+            background: #ecfdf5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 6px;
+            font-size: 0.8rem;
+            border: 1px solid #d1fae5;
         }
         
         .examples {
-            margin-top: 16px;
+            margin-top: 20px;
             background: #f8fafc;
-            padding: 16px;
-            border-radius: 6px;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
         }
         
         .examples h4 {
             color: #374151;
             font-size: 0.875rem;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 12px;
             font-size: 0.75rem;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
         }
         
         th, td {
             border: 1px solid #e2e8f0;
-            padding: 8px 12px;
+            padding: 12px 16px;
             text-align: right;
         }
         
@@ -321,7 +337,7 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
                                         <span class="keyword">${step.keyword}</span> ${step.text}
                                     </div>
                                 `).join('')}
-                                ${scenario.examples && scenario.examples.headers.length > 0 ? `
+                                ${scenario.examples && scenario.examples.headers && scenario.examples.headers.length > 0 ? `
                                     <div class="examples">
                                         <h4>مثال‌ها:</h4>
                                         <table>
@@ -331,9 +347,9 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                ${scenario.examples.rows.map(row => `
+                                                ${scenario.examples.rows && scenario.examples.rows.map(row => `
                                                     <tr>
-                                                        ${row.values.map(value => `<td>${value}</td>`).join('')}
+                                                        ${row.values && row.values.map(value => `<td>${value}</td>`).join('')}
                                                     </tr>
                                                 `).join('')}
                                             </tbody>
@@ -351,133 +367,19 @@ export const createBeautifulHTML = (project: Project, features: Feature[]) => {
 </html>`;
 };
 
-// تابع مشترک برای ساخت PDF از HTML
-export const createPDFBlob = async (htmlContent: string): Promise<Blob> => {
-    if (typeof window === 'undefined') {
-        throw new Error('createPDFBlob باید فقط در کلاینت (مرورگر) اجرا شود.');
-    }
-
-    try {
-        // Method 1: Try html2pdf.js first
-        return await createPDFWithHtml2Pdf(htmlContent);
-    } catch (error) {
-        console.warn('html2pdf.js failed, trying alternative method:', error);
-        // Method 2: Fallback to jsPDF with html2canvas
-        return await createPDFWithJsPDF(htmlContent);
-    }
-};
-
-// Method 1: Using html2pdf.js
-const createPDFWithHtml2Pdf = async (htmlContent: string): Promise<Blob> => {
-    // Create a temporary div to hold the HTML content
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    tempDiv.style.position = 'fixed';
-    tempDiv.style.left = '0';
-    tempDiv.style.top = '0';
-    tempDiv.style.width = '800px';
-    tempDiv.style.height = 'auto';
-    tempDiv.style.visibility = 'hidden';
-    tempDiv.style.zIndex = '-9999';
-    document.body.appendChild(tempDiv);
-
-    try {
-        // Wait a bit for the DOM to be ready
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Import html2pdf dynamically
-        const html2pdf = (await import('html2pdf.js')).default;
-        
-        // Configure html2pdf options
-        const opt = {
-            margin: [15, 15, 15, 15],
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2,
-                useCORS: true,
-                letterRendering: true,
-                width: 800,
-                height: tempDiv.scrollHeight,
-                scrollX: 0,
-                scrollY: 0
-            },
-            jsPDF: { 
-                unit: 'mm', 
-                format: 'a4', 
-                orientation: 'portrait' 
-            }
-        };
-
-        // Generate PDF as blob
-        const pdfBlob = await html2pdf().set(opt).from(tempDiv).outputPdf('blob');
-        
-        return pdfBlob;
-    } finally {
-        // Clean up
-        document.body.removeChild(tempDiv);
-    }
-};
-
-// Method 2: Using jsPDF with html2canvas directly
-const createPDFWithJsPDF = async (htmlContent: string): Promise<Blob> => {
-    // Create a temporary div to hold the HTML content
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    tempDiv.style.position = 'fixed';
-    tempDiv.style.left = '0';
-    tempDiv.style.top = '0';
-    tempDiv.style.width = '800px';
-    tempDiv.style.height = 'auto';
-    tempDiv.style.visibility = 'hidden';
-    tempDiv.style.zIndex = '-9999';
-    document.body.appendChild(tempDiv);
-
-    try {
-        // Wait a bit for the DOM to be ready
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        // Import required libraries
-        const jsPDF = (await import('jspdf')).default;
-        const html2canvas = (await import('html2canvas')).default;
-
-        // Convert HTML to canvas
-        const canvas = await html2canvas(tempDiv, {
-            scale: 2,
-            useCORS: true,
-            width: 800,
-            height: tempDiv.scrollHeight,
-            scrollX: 0,
-            scrollY: 0
-        });
-
-        // Create PDF
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgWidth = 210; // A4 width in mm
-        const pageHeight = 295; // A4 height in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        let heightLeft = imgHeight;
-
-        let position = 0;
-
-        // Add first page
-        pdf.addImage(canvas, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        // Add additional pages if needed
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(canvas, 'JPEG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-        }
-
-        // Convert to blob
-        const pdfBlob = pdf.output('blob');
-        return pdfBlob;
-    } finally {
-        // Clean up
-        document.body.removeChild(tempDiv);
-    }
+// تابع wrapper برای سازگاری با type قدیمی Project
+export const createBeautifulHTMLForClient = (project: Project, features: Feature[]) => {
+  const projectWithFeatures: import('@/types/entities').ProjectWithFeatures = {
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
+    status: project.status,
+    authorName: project.authorName,
+    features: features,
+  };
+  return createBeautifulHTML(projectWithFeatures, features);
 };
 
 // تابع برای ساخت Gherkin از Feature
@@ -556,3 +458,36 @@ Features:
 ${features.map((f, i) => `${i + 1}. ${f.name}`).join('\n')}
 `;
 }; 
+
+// گرفتن پروژه و فیچرها برای export PDF
+export async function getProjectWithFeatures(projectId: string): Promise<ProjectWithFeatures | null> {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: {
+      features: {
+        include: {
+          scenarios: { include: { steps: true, examples: true } },
+          background: { include: { steps: true } },
+        },
+        orderBy: { order: 'asc' },
+      },
+      user: true,
+    },
+  });
+  if (!project) return null;
+  // تبدیل rulesJson به rules
+  const features = project.features.map((f: any) => ({
+    ...f,
+    rules: f.rulesJson ? Array.isArray(f.rulesJson) ? f.rulesJson : [] : [],
+  }));
+  return {
+    id: project.id,
+    name: project.name,
+    description: project.description || '',
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
+    status: project.status as string,
+    authorName: [project.user?.firstName, project.user?.lastName].filter(Boolean).join(' ') || '',
+    features: features,
+  };
+} 
