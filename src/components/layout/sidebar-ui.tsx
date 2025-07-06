@@ -1,29 +1,20 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/i18n";
 import {
     Folder,
     Settings,
-    Sparkles,
-    BookOpen,
+ 
     X,
 } from "lucide-react";
-import { Icons } from "@/components/icons";
 import { useSidebarState } from "@/components/providers/sidebar-context";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarContent, SidebarFooter } from "./sidebar-content";
 
 const SIDEBAR_WIDTH = 256; // 16rem
 
 export default function Sidebar() {
-    const pathname = usePathname();
     const { t } = useI18n();
     const { isOpen, toggle } = useSidebarState();
 

@@ -19,7 +19,6 @@ export async function GET(req: NextRequest) {
       country
     }, { status: 200 });
   } catch (error) {
-    console.error("User info error:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

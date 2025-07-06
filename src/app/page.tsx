@@ -4,11 +4,11 @@ export const dynamic = "force-dynamic";
 import { Icons } from "@/components/icons";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useI18n } from "@/i18n";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
-  const { t } = useI18n();
+  const { status } = useSession();
 
   // Animation variants for staggering effect
   const containerVariants = {
@@ -61,12 +61,20 @@ export default function Home() {
             variants={itemVariants}
             className="flex flex-col sm:flex-row items-center gap-4 mt-4"
           >
+            {status === "authenticated" ? (
+              <Button asChild size="lg" className="w-40 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg">
+                <Link href="/projects">مشاهده پروژه‌ها</Link>
+              </Button>
+            ) : (
+              <>
             <Button asChild size="lg" className="w-40 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg">
               <Link href="/sign-up">شروع کنید</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="w-40 bg-gray-800/50 border-gray-600 text-white hover:bg-gray-700/70 hover:border-gray-500 shadow-lg">
               <Link href="/sign-in">ورود</Link>
             </Button>
+              </>
+            )}
           </motion.div>
         </motion.div>
       </div>

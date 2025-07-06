@@ -69,7 +69,7 @@ export const StepsList: React.FC<StepsListProps> = ({
                         onClick={() => onAddStep(scenarioId)} // Ensure onAddStep receives scenarioId
                         aria-label="Add new step"
                     >
-                        <Plus className="h-4 w-4 ml-1.5" /> Add Step
+                        <Plus className="h-4 w-4 ml-1.5" /> افزودن مرحله
                     </Button>
                 </div>
             </SortableContext>

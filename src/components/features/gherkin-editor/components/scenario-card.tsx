@@ -5,17 +5,16 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GripVertical, ChevronDown, Plus, Copy, Trash, Pencil, MoreHorizontal } from 'lucide-react';
-import { Scenario, Step, Examples } from '@/types/gherkin';
-import { StepsList } from './StepsList'; // Assumed to be styled correctly internally
+import { GripVertical, ChevronDown, Copy, Trash, Pencil, MoreHorizontal } from 'lucide-react';
+import { StepsList } from './StepsList';
 import { Textarea } from '@/components/ui/textarea';
-import { ExamplesTable } from './ExamplesTable'; // Assumed to be styled correctly internally
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import { ExamplesTable } from './ExamplesTable'; // Import from external file
 
 interface ScenarioCardProps {
     scenario: import('@/types/gherkin').Scenario;
@@ -91,27 +90,25 @@ export function ScenarioCard({
         <Card
             ref={setNodeRef}
             style={style}
-            // Enhanced Styling:
             className="
-        transition-all duration-200 ease-in-out
-        border border-gray-200
-        bg-white
-        py-0
-        rounded-xl       /* More rounded corners */
-        shadow-lg        /* Stronger shadow for depth */
-        hover:shadow-xl  /* Even stronger shadow on hover */
-        relative group
-        flex flex-col    /* Use flexbox for internal layout */
-      "
+                transition-all duration-200 ease-in-out
+                border border-gray-200
+                bg-white
+                py-0
+                rounded-xl
+                shadow-lg
+                hover:shadow-xl
+                relative group
+                flex flex-col
+            "
         >
             <CardHeader className="
-        flex flex-row items-center justify-between gap-4
-        px-6 py-4           /* Adjusted padding */
-        border-b border-gray-100
-        bg-gray-50         /* Light background for header */
-        rounded-t-xl       /* Match card rounded corners */
-      ">
-                {/* Drag Handle - always visible but subtle */}
+                flex flex-row items-center justify-between gap-4
+                px-6 py-4
+                border-b border-gray-100
+                bg-gray-50
+                rounded-t-xl
+            ">
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
@@ -128,7 +125,6 @@ export function ScenarioCard({
                     <TooltipContent>کشیدن برای تغییر ترتیب سناریو</TooltipContent>
                 </Tooltip>
 
-                {/* Scenario Title and Type Badge */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     {editingTitle ? (
                         <Input
@@ -150,12 +146,12 @@ export function ScenarioCard({
                     ) : (
                         <CardTitle
                             className="
-                text-xl font-bold                 /* Make title bolder */
-                text-gray-800                     /* Darker text for prominence */
-                cursor-pointer hover:underline underline-offset-2 decoration-dotted
-                transition-all px-0.5 py-0.5 rounded-md
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400
-              "
+                                text-xl font-bold
+                                text-gray-800
+                                cursor-pointer hover:underline underline-offset-2 decoration-dotted
+                                transition-all px-0.5 py-0.5 rounded-md
+                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400
+                            "
                             onClick={() => setEditingTitle(true)}
                             onKeyDown={e => { if (e.key === 'Enter') setEditingTitle(true); }}
                             tabIndex={0}
@@ -167,18 +163,16 @@ export function ScenarioCard({
                     <Badge
                         variant="secondary"
                         className="
-              text-xs font-medium
-              bg-blue-100 text-blue-800 border-blue-200  /* Blue badge for visibility */
-              px-2 py-1 rounded-full
-            "
+                            text-xs font-medium
+                            bg-blue-100 text-blue-800 border-blue-200
+                            px-2 py-1 rounded-full
+                        "
                     >
                         {scenario.type === "scenario-outline" ? "سناریو با مثال" : "سناریو"}
                     </Badge>
                 </div>
 
-                {/* Right-aligned Actions - tightly grouped and clean */}
                 <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* Type Switch - compact layout */}
                     <div className="flex items-center space-x-2">
                         <Switch
                             id={`scenario-type-${scenario.id}`}
@@ -192,7 +186,6 @@ export function ScenarioCard({
                         </Label>
                     </div>
 
-                    {/* More Actions Dropdown */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" aria-label="More scenario actions" className="h-8 w-8 text-gray-500 hover:bg-gray-200 hover:text-gray-700">
@@ -213,7 +206,6 @@ export function ScenarioCard({
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* Collapse/Expand Button */}
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
@@ -231,25 +223,22 @@ export function ScenarioCard({
                 </div>
             </CardHeader>
 
-            {/* Collapsible Content */}
             {!collapsed && (
-                <CardContent className="px-6 pb-6 pt-5 space-y-5 flex-1 overflow-auto"> {/* Added flex-1 overflow-auto */}
-                    {/* Tags Section */}
+                <CardContent className="px-6 pb-6 pt-5 space-y-5 flex-1 overflow-auto">
                     {scenario.tags && scenario.tags.length > 0 && (
                         <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
                             <span className="font-semibold text-gray-700">برچسب‌ها:</span>
                             {scenario.tags.map(tag => (
                                 <Badge key={tag} variant="secondary" className="
-                  text-gray-700 bg-purple-100 border-purple-200  /* Distinct color for tags */
-                  text-xs px-2 py-0.5 rounded-full
-                ">
+                                    text-gray-700 bg-purple-100 border-purple-200
+                                    text-xs px-2 py-0.5 rounded-full
+                                ">
                                     {tag}
                                 </Badge>
                             ))}
                         </div>
                     )}
 
-                    {/* Description */}
                     <div>
                         <Textarea
                             value={currentDescription}
@@ -258,17 +247,16 @@ export function ScenarioCard({
                             placeholder="توضیح سناریو (اختیاری)..."
                             rows={2}
                             className="
-                w-full resize-y p-3
-                bg-gray-50 border border-gray-200 rounded-md
-                text-sm leading-relaxed text-gray-700  /* Darker text for description */
-                focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-0
-                placeholder:text-gray-400
-              "
+                                w-full resize-y p-3
+                                bg-gray-50 border border-gray-200 rounded-md
+                                text-sm leading-relaxed text-gray-700
+                                focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-0
+                                placeholder:text-gray-400
+                            "
                             aria-label="Scenario description"
                         />
                     </div>
 
-                    {/* Steps List */}
                     <div>
                         <StepsList
                             steps={scenario.steps}
@@ -282,19 +270,24 @@ export function ScenarioCard({
                         />
                     </div>
 
-                    {/* Examples Table for Scenario Outline */}
                     {scenario.type === "scenario-outline" && scenario.examples && (
                         <div>
                             <h3 className="text-lg font-bold text-gray-800 mb-3">مثال‌ها</h3>
                             <ExamplesTable
-                                headers={scenario.examples.headers}
-                                rows={scenario.examples.rows}
+                                headers={scenario.examples?.headers || []}
+                                rows={scenario.examples?.rows || []}
                                 onChange={(headers, rows) => {
-                                    onRenameScenario(scenario.id, currentTitle, "scenario-outline", {
+                                    onRenameScenario(
+                                        scenario.id,
+                                        currentTitle,
+                                        "scenario-outline",
+                                        {
                                         id: scenario.examples?.id ?? `examples-${scenario.id}`,
                                         headers,
                                         rows,
-                                    }, currentDescription);
+                                        },
+                                        currentDescription
+                                    );
                                 }}
                             />
                         </div>

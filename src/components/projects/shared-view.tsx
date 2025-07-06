@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Project, Feature, Scenario, Step, Rule, StepType } from '@/types/index';
 
 // Import UI components from shadcn/ui
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -17,8 +17,8 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 import {
-    FileText, GitBranch, CheckSquare, ExternalLink, Tag, Layers3, Combine, Users, Calendar,
-    Shield, CreditCard, Database, Smartphone, Settings, Zap, ShoppingCart, ChevronRight, BookText, ChevronsUpDown
+    FileText, GitBranch,  ExternalLink, Tag, Layers3, Combine, Users, Calendar,
+     BookText, ChevronsUpDown, 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -77,6 +77,9 @@ function ScenarioContent({ scenario }: { scenario: Scenario }) {
             <div className="flex items-center gap-2 mb-1">
                 <GitBranch className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium text-base">{scenario.name}</span>
+                <Badge variant={scenario.type === 'scenario-outline' ? 'secondary' : 'outline'} className="text-xs font-normal">
+                    {scenario.type === 'scenario-outline' ? 'Scenario Outline' : 'Scenario'}
+                </Badge>
                 {scenario.tags?.length > 0 && scenario.tags.map((tag, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs font-normal"><Tag className="w-3 h-3 ml-1 rtl:ml-0 rtl:mr-1" />{tag}</Badge>
                 ))}
@@ -87,20 +90,31 @@ function ScenarioContent({ scenario }: { scenario: Scenario }) {
             </div>
             {scenario.examples && (
                 <div className="space-y-2 pt-3 mt-3">
-                    <span className="text-sm font-medium">مثال‌ها:</span>
-                    <Table className="bg-background/50 rounded-md">
-                        <TableHeader>
-                            <TableRow>{scenario.examples.headers.map((h, i) => <TableHead key={i}>{h}</TableHead>)}</TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {scenario.examples.rows.map((row, idx) => (
-                                <TableRow key={row.id || idx}>
-                                    {row.values.map((cell, cidx) => <TableCell key={cidx}>{cell}</TableCell>)}
-                                </TableRow>
+                    <span className="text-sm font-bold text-gray-800">مثال‌ها:</span>
+                    <div className="overflow-x-auto">
+                        <table className="w-auto min-w-max border-separate border-spacing-0 text-sm" style={{ direction: 'rtl', borderCollapse: 'separate' }}>
+                            <thead>
+                                <tr>
+                                    {(scenario.examples?.headers || []).map((h, i) => (
+                                        <th key={i} className="bg-gray-100 font-bold text-gray-800 border border-gray-300 px-4 py-2 text-right whitespace-nowrap" style={{ borderTopRightRadius: i === 0 ? 8 : 0, borderTopLeftRadius: i === (scenario.examples?.headers?.length || 0) - 1 ? 8 : 0 }}>{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(scenario.examples?.rows || []).map((row, idx) => (
+                                    <tr key={row.id || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                        {(row.values || []).map((cell, cidx) => (
+                                            <td key={cidx} className="border border-gray-200 px-4 py-2 text-right whitespace-nowrap">{cell}</td>
+                                        ))}
+                                    </tr>
                             ))}
-                        </TableBody>
-                    </Table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+            )}
+            {scenario.type === 'scenario-outline' && !scenario.examples && (
+                <div className="text-sm text-red-500 mt-2">⚠️ جدول مثال‌ها برای این سناریو تعریف نشده است.</div>
             )}
         </div>
     );
@@ -243,15 +257,17 @@ export function SharedProjectView({ project, features = [] }: SharedProjectViewP
                                     <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
                                     <p className="text-muted-foreground">{project.description}</p>
                                 </div>
-                                <Button variant="outline" size="sm" className="shrink-0" onClick={() => window.open('https://qartal.ir', '_blank')}>
-                                    <ExternalLink className="w-4 h-4 ml-2 rtl:ml-0 rtl:mr-2" />
-                                    مشاهده در قارتال
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Button variant="outline" size="sm" className="shrink-0" onClick={() => window.open('https://qartal.ir', '_blank')}>
+                                        <ExternalLink className="w-4 h-4 ml-2 rtl:ml-0 rtl:mr-2" />
+                                        مشاهده در قارتال
+                                    </Button>
+                                </div>
                             </div>
                             <Separator className="my-3" />
                             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-2"><FileText className="w-4 h-4" /><span>{features.length} ویژگی</span></div>
-                                <div className="flex items-center gap-2"><Users className="w-4 h-4" /><span>تیم {project.teamSize} نفره</span></div>
+                                <div className="flex items-center gap-2"><Users className="w-4 h-4" /><span>نویسنده: {project.authorName}</span></div>
                                 <div className="flex items-center gap-2"><Calendar className="w-4 h-4" /><span>آخرین بروزرسانی: {new Date(project.updatedAt).toLocaleDateString('fa-IR')}</span></div>
                             </div>
                         </CardContent>

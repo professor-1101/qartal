@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const { t } = useI18n();
-  const { isOpen, toggle } = useSidebarState();
+  const {  toggle } = useSidebarState();
   const pathname = usePathname();
   const [projectName, setProjectName] = useState<string | null>(null);
   const [featureName, setFeatureName] = useState<string | null>(null);

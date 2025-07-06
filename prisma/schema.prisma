@@ -47,6 +47,7 @@ model Feature {
   slang       String      @default("gherkin")
   tags        String[]    @default([])
   rulesJson   Json?       // <--- این خط را اضافه کن
+  order       Int         @default(0) // ترتیب نمایش
 }
 
 model Background {

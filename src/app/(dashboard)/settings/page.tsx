@@ -8,16 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Shield, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
+import { User, Shield } from "lucide-react";
 import { useI18n } from "@/i18n";
-import { PasswordInput } from "@/components/ui/password-input";
 import { useSession } from "next-auth/react";
 import { toast } from "@/components/ui/use-toast";
 import DashboardPageHeader from "@/components/layout/DashboardPageHeader";
 
 export default function SettingsPage() {
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const { data: session, update } = useSession();
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);

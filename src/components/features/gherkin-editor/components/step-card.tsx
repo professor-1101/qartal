@@ -11,7 +11,6 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-    DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -169,7 +168,7 @@ export const StepCard: React.FC<StepCardProps> = ({
                     onKeyDown={e => e.key === "Enter" && handleEdit()}
                     aria-label="Step text"
                 >
-                    {value || "New step"}
+                    {value || "مرحله جدید"}
                 </span>
             )}
 

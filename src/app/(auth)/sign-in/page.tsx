@@ -7,11 +7,21 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSession } from "next-auth/react";
+import React from "react";
 
 export default function SignInPage() {
   const { t } = useI18n();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const { status } = useSession();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/projects");
+    }
+  }, [status, router]);
 
   const handleSubmit = async (data: any) => {
     try {

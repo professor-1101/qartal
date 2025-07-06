@@ -551,7 +551,8 @@ export class GherkinBusinessLogicService implements GherkinBusinessLogic {
       description: '',
       tags: [],
       scenarios: [],
-      isValid: true
+      isValid: true,
+      order: 0,
     };
 
     let currentSection: 'feature' | 'background' | 'scenario' | 'examples' = 'feature';

@@ -70,6 +70,7 @@ export interface Feature {
   background?: Background;
   rules?: Rule[];
   scenarios: Scenario[];
+  order: number;
   isValid?: boolean;
   validationMessage?: string;
 }

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET /api/projects/[projectId]/gherkin/[gherkinId] - Get a specific Gherkin file
 export async function GET(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: Promise<{ projectId: string; gherkinId: string }> }
 ) {
     try {
@@ -161,7 +161,7 @@ export async function PUT(
 
 // DELETE /api/projects/[projectId]/gherkin/[gherkinId] - Delete a Gherkin file
 export async function DELETE(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: Promise<{ projectId: string; gherkinId: string }> }
 ) {
     try {

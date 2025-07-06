@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GherkinEditor } from "@/components/features/gherkin-editor/gherkin-editor";
 import { Feature, Rule, Scenario, Step, Examples, Background } from "@/types/gherkin";
 import { toast } from "sonner";
+import isEqual from "fast-deep-equal";
 
 // Update Scenario type to include keyword
-type EditorScenario = Scenario & {
-    keyword?: string;
-};
+
 
 interface ApiFeature {
     id: string;
@@ -117,7 +116,8 @@ function transformFeature(apiFeature: ApiFeature): Feature {
         tags: apiFeature.tags || [],
         rules,
         scenarios,
-        background
+        background,
+        order: (apiFeature as any).order ?? 0,
     };
 }
 
@@ -160,6 +160,24 @@ interface FeatureEditClientProps {
 
 export default function FeatureEditClient({ feature: initialFeature, project }: FeatureEditClientProps) {
     const [feature, setFeature] = useState<Feature>(initialFeature);
+    const [dirty, setDirty] = useState(false);
+
+    // ردیابی تغییرات dirty
+    useEffect(() => {
+        setDirty(!isEqual(feature, initialFeature));
+    }, [feature, initialFeature]);
+
+    // هشدار خروج در صورت تغییرات ذخیره‌نشده
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (dirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [dirty]);
 
     const handleFeatureChange = async (updatedFeature: Feature) => {
         try {

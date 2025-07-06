@@ -24,11 +24,11 @@ export function BackgroundSection({
   background,
   onBackgroundChange,
   onAddStep,
-  onEditStep,
-  onEditStepType,
-  onDeleteStep,
-  onDuplicateStep,
-  onReorderSteps,
+  // onEditStep,
+  // onEditStepType,
+  // onDeleteStep,
+  // onDuplicateStep,
+  // onReorderSteps,
 }: BackgroundSectionProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -200,7 +200,7 @@ export function BackgroundSection({
           <div className="mr-8">
             <StepsList
               steps={background.steps}
-              onReorderSteps={(scenarioId, newSteps) => handleReorderSteps(newSteps)}
+              onReorderSteps={(_scenarioId, newSteps) => handleReorderSteps(newSteps)}
               onAddStep={handleAddStep}
               onEditStep={handleEditStep}
               onEditStepType={handleEditStepType}

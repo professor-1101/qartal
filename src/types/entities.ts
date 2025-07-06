@@ -9,7 +9,7 @@ export interface Project {
     createdAt: string;
     updatedAt: string;
     status: "active" | "archived" | "draft";
-    teamSize: number;
+    authorName: string;
 }
 
 export interface User {

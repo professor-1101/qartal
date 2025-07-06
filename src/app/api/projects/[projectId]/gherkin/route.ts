@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET /api/projects/[projectId]/gherkin - Get all Gherkin files for a project
 export async function GET(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: Promise<{ projectId: string }> }
 ) {
     try {

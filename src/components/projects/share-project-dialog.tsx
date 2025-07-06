@@ -12,21 +12,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import {
     Share2,
     Copy,
     Check,
     ExternalLink,
-    Calendar,
-    User,
-    FileCode,
-    GitBranch,
-    CheckSquare,
-    Eye,
-    Clock
 } from 'lucide-react';
 import { Project, Feature } from '@/types/index';
 import { toast } from 'sonner';
@@ -39,7 +29,7 @@ interface ShareProjectDialogProps {
     features?: Feature[];
 }
 
-export function ShareProjectDialog({ open, onOpenChange, project, features = [] }: ShareProjectDialogProps) {
+export function ShareProjectDialog({ open, onOpenChange, project}: ShareProjectDialogProps) {
     const [copied, setCopied] = useState(false);
     const [shareLink, setShareLink] = useState('');
 
@@ -54,19 +44,6 @@ export function ShareProjectDialog({ open, onOpenChange, project, features = [] 
     }, [project?.id]);
 
     // Calculate project statistics
-    const projectStats = features.reduce((acc, feature) => {
-        const backgroundSteps = feature.background?.steps?.length || 0;
-        const scenarioSteps = feature.scenarios?.reduce((scenarioAcc, scenario) =>
-            scenarioAcc + (scenario.steps?.length || 0), 0) || 0;
-        const totalSteps = backgroundSteps + scenarioSteps;
-        const totalScenarios = feature.scenarios?.length || 0;
-
-        return {
-            totalSteps: acc.totalSteps + totalSteps,
-            totalScenarios: acc.totalScenarios + totalScenarios,
-            totalFeatures: acc.totalFeatures + 1
-        };
-    }, { totalSteps: 0, totalScenarios: 0, totalFeatures: 0 });
 
     const handleCopyLink = async () => {
         try {
@@ -79,19 +56,7 @@ export function ShareProjectDialog({ open, onOpenChange, project, features = [] 
         }
     };
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('fa-IR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
-
-    const getLastModified = () => {
-        // در حالت واقعی این مقدار از دیتابیس می‌آید
-        return new Date().toISOString();
-    };
+   
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

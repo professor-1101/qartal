@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET /api/projects/[projectId] - Get a specific project
 export async function GET(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: Promise<{ projectId: string }> }
 ) {
     try {
@@ -140,7 +140,7 @@ export async function PUT(
 
 // DELETE /api/projects/[projectId] - Delete a project
 export async function DELETE(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: Promise<{ projectId: string }> }
 ) {
     try {

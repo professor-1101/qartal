@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Feature, Project, Scenario, Step } from "@/types/index";
+import { Feature } from "@/types/index";
 import { GherkinEditor } from "@/components/features/gherkin-editor/gherkin-editor";
 import { prisma } from '@/lib/prisma';
 
@@ -63,7 +63,8 @@ export default async function FeaturePage({
                 keyword: step.keyword,
                 text: step.text
             }))
-        } : undefined
+        } : undefined,
+        order: feature.order ?? 0,
     };
 
     return (

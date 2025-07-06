@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { nanoid } from 'nanoid';
 
 // GET /api/projects - Get all projects for the current user
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 

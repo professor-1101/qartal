@@ -54,11 +54,20 @@ export async function POST(
             );
         }
 
+        // Find the current max order for this project's features
+        const maxOrderFeature = await prisma.feature.findFirst({
+            where: { projectId: projectId },
+            orderBy: { order: 'desc' },
+            select: { order: true },
+        });
+        const nextOrder = (maxOrderFeature?.order ?? 0) + 1;
+
         const feature = await prisma.feature.create({
             data: {
                 name,
                 description,
                 projectId: projectId,
+                order: nextOrder,
             },
             include: {
                 scenarios: true,

@@ -7,28 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
     SearchIcon,
-    BookOpen,
     Code,
     Zap,
     ArrowRight,
-    ChevronRight,
-    Folder,
     FileText,
-    Users,
-    Settings,
-    Play,
     Plus,
     Edit,
     Share,
-    Trash2,
-    CheckCircle,
-    AlertCircle,
+  
     Info
 } from "lucide-react";
-import { useI18n } from "@/i18n";
 
 export default function DocsPage() {
-    const { t } = useI18n();
 
     return (
         <div className="min-h-screen bg-background" dir="rtl">

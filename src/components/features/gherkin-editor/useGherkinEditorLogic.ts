@@ -1,0 +1,387 @@
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Feature, Scenario, Step, Examples, Background } from "@/types/gherkin";
+import { gherkinBusinessLogic } from "@/lib/gherkin-business-logic";
+import isEqual from 'lodash/isEqual';
+
+export function useGherkinEditorLogic(initialFeature: Feature) {
+  const defaultFeature: Feature = {
+    name: '',
+    scenarios: [],
+    tags: [],
+    rules: [],
+    description: '',
+    background: undefined,
+    id: '',
+    order: 0,
+  };
+
+  const [feature, setFeature] = useState<Feature>(initialFeature || defaultFeature);
+  const [dirty, setDirty] = useState(false);
+  const [showAddScenarioMenu, setShowAddScenarioMenu] = useState(false);
+  const addScenarioButtonRef = useRef<HTMLButtonElement>(null);
+  const [showRuleModal, setShowRuleModal] = useState(false);
+  const [editingRule, setEditingRule] = useState<{ id?: string; name: string; description: string } | null>(null);
+
+  useEffect(() => {
+    const normalizedFeature = {
+      ...defaultFeature,
+      ...initialFeature,
+      scenarios: initialFeature?.scenarios || [],
+      rules: initialFeature?.rules || [],
+      tags: initialFeature?.tags || [],
+    };
+    setFeature(normalizedFeature);
+    setDirty(false);
+  }, [initialFeature]);
+
+  useEffect(() => {
+    setDirty(!isEqual(feature, initialFeature || defaultFeature));
+  }, [feature, initialFeature]);
+
+  const gherkinText = useMemo(() => {
+    return gherkinBusinessLogic.generateGherkinText(feature);
+  }, [feature]);
+
+  // Handlers for rules
+  const handleAddOrEditRule = (rule?: { id?: string; name: string; description: string }) => {
+    setFeature(prev => {
+      const rules = prev.rules ? [...prev.rules] : [];
+      if (rule?.id) {
+        const idx = rules.findIndex(r => r.id === rule.id);
+        if (idx !== -1) rules[idx] = { ...rules[idx], ...rule };
+      } else if (rule) {
+        rules.push({
+          id: `rule-${Date.now()}`,
+          name: rule.name,
+          description: rule.description,
+          tags: [],
+          scenarios: [],
+        });
+      }
+      return { ...prev, rules };
+    });
+    setDirty(true);
+    setShowRuleModal(false);
+    setEditingRule(null);
+  };
+
+  const handleDeleteRule = (ruleId: string) => {
+    setFeature(prev => ({
+      ...prev,
+      rules: prev.rules?.filter(r => r.id !== ruleId) || [],
+    }));
+    setDirty(true);
+  };
+
+  // Handlers for background
+  const handleBackgroundChange = (background: Background | undefined) => {
+    setFeature(prev => ({ ...prev, background }));
+    setDirty(true);
+  };
+
+  const handleAddBackgroundStep = () => {
+    setFeature(prev => {
+      if (!prev.background) return prev;
+      return {
+        ...prev,
+        background: {
+          ...prev.background,
+          steps: [
+            ...prev.background.steps,
+            { id: `step-${Date.now()}`, keyword: 'فرض', text: '' }
+          ]
+        }
+      };
+    });
+    setDirty(true);
+  };
+
+  const handleEditBackgroundStep = (stepId: string, newText: string) => {
+    setFeature(prev => {
+      if (!prev.background) return prev;
+      return {
+        ...prev,
+        background: {
+          ...prev.background,
+          steps: prev.background.steps.map(st =>
+            st.id === stepId ? { ...st, text: newText } : st
+          )
+        }
+      };
+    });
+    setDirty(true);
+  };
+
+  const handleEditBackgroundStepType = (stepId: string, newType: Step["keyword"]) => {
+    setFeature(prev => {
+      if (!prev.background) return prev;
+      return {
+        ...prev,
+        background: {
+          ...prev.background,
+          steps: prev.background.steps.map(st =>
+            st.id === stepId ? { ...st, keyword: newType } : st
+          )
+        }
+      };
+    });
+    setDirty(true);
+  };
+
+  const handleDeleteBackgroundStep = (stepId: string) => {
+    setFeature(prev => {
+      if (!prev.background) return prev;
+      return {
+        ...prev,
+        background: {
+          ...prev.background,
+          steps: prev.background.steps.filter(st => st.id !== stepId)
+        }
+      };
+    });
+    setDirty(true);
+  };
+
+  const handleDuplicateBackgroundStep = (stepId: string) => {
+    setFeature(prev => {
+      if (!prev.background) return prev;
+      const stepToDup = prev.background.steps.find(st => st.id === stepId);
+      if (!stepToDup) return prev;
+      const idx = prev.background.steps.findIndex(st => st.id === stepId);
+      const newSteps = [...prev.background.steps];
+      newSteps.splice(idx + 1, 0, {
+        ...stepToDup,
+        id: `step-${Date.now()}`,
+        text: stepToDup.text + ' (کپی)'
+      });
+      return {
+        ...prev,
+        background: {
+          ...prev.background,
+          steps: newSteps
+        }
+      };
+    });
+    setDirty(true);
+  };
+
+  const handleReorderBackgroundSteps = (newSteps: Step[]) => {
+    setFeature(prev => {
+      if (!prev.background) return prev;
+      return {
+        ...prev,
+        background: {
+          ...prev.background,
+          steps: newSteps
+        }
+      };
+    });
+    setDirty(true);
+  };
+
+  // Handlers for scenarios
+  const handleAddScenario = (type: "scenario" | "scenario-outline" = "scenario") => {
+    const newScenario: Scenario = {
+      id: `scenario-${Date.now()}`,
+      type: type,
+      name: "سناریوی جدید",
+      description: "",
+      tags: [],
+      steps: [],
+      ...(type === "scenario-outline" ? {
+        examples: {
+          id: `examples-${Date.now()}`,
+          headers: ["param1"],
+          rows: [{ id: `row-${Date.now()}`, values: [""] }]
+        }
+      } : {})
+    };
+    setFeature(prev => ({
+      ...prev,
+      scenarios: [...(prev.scenarios || []), newScenario]
+    }));
+    setDirty(true);
+  };
+
+  const handleRenameScenario = (
+    scenarioId: string,
+    newTitle: string,
+    newType: 'scenario' | 'scenario-outline',
+    examples?: Examples,
+    newDescription?: string
+  ) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).map(s =>
+        s.id === scenarioId
+          ? {
+              ...s,
+              name: newTitle,
+              type: newType,
+              description: newDescription ?? s.description,
+              examples: newType === "scenario-outline"
+                ? (examples
+                  ? { ...examples }
+                  : {
+                      id: `examples-${Date.now()}`,
+                      headers: ["param1"],
+                      rows: [{ id: `row-${Date.now()}`, values: [""] }]
+                    })
+                : undefined
+            }
+          : s
+      )
+    }));
+    setDirty(true);
+  };
+
+  const handleDeleteScenario = (scenarioId: string) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).filter(s => s.id !== scenarioId)
+    }));
+    setDirty(true);
+  };
+
+  const handleDuplicateScenario = (scenarioId: string) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).flatMap(s =>
+        s.id === scenarioId
+          ? [
+              s,
+              {
+                ...s,
+                id: `scenario-${Date.now()}`,
+                examples: s.examples
+                  ? {
+                      ...s.examples,
+                      id: `examples-${Date.now()}`,
+                      rows: s.examples.rows.map(row => ({ ...row, id: `row-${Date.now()}` }))
+                    }
+                  : undefined
+              }
+            ]
+          : [s]
+      )
+    }));
+    setDirty(true);
+  };
+
+  // Handlers for steps in scenarios
+  const handleAddStep = (scenarioId: string) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).map(s =>
+        s.id === scenarioId
+          ? {
+              ...s,
+              steps: [
+                ...s.steps,
+                { id: `step-${Date.now()}`, keyword: "فرض", text: "" }
+              ]
+            }
+          : s
+      )
+    }));
+    setDirty(true);
+  };
+
+  const handleEditStep = (stepId: string, newText: string) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).map(s => ({
+        ...s,
+        steps: s.steps.map(st =>
+          st.id === stepId ? { ...st, text: newText } : st
+        )
+      }))
+    }));
+    setDirty(true);
+  };
+
+  const handleEditStepType = (stepId: string, newType: Step["keyword"]) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).map(s => ({
+        ...s,
+        steps: s.steps.map(st =>
+          st.id === stepId ? { ...st, keyword: newType } : st
+        )
+      }))
+    }));
+    setDirty(true);
+  };
+
+  const handleDeleteStep = (stepId: string) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).map(s => ({
+        ...s,
+        steps: s.steps.filter(st => st.id !== stepId)
+      }))
+    }));
+    setDirty(true);
+  };
+
+  const handleDuplicateStep = (stepId: string) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).map(s => ({
+        ...s,
+        steps: s.steps.flatMap(st =>
+          st.id === stepId
+            ? [st, { ...st, id: `step-${Date.now()}` }]
+            : [st]
+        )
+      }))
+    }));
+    setDirty(true);
+  };
+
+  const handleReorderSteps = (scenarioId: string, newSteps: Step[]) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: (prev.scenarios || []).map(s =>
+        s.id === scenarioId
+          ? { ...s, steps: newSteps }
+          : s
+      )
+    }));
+    setDirty(true);
+  };
+
+  return {
+    feature,
+    setFeature,
+    dirty,
+    setDirty,
+    showAddScenarioMenu,
+    setShowAddScenarioMenu,
+    addScenarioButtonRef,
+    showRuleModal,
+    setShowRuleModal,
+    editingRule,
+    setEditingRule,
+    gherkinText,
+    handleAddOrEditRule,
+    handleDeleteRule,
+    handleBackgroundChange,
+    handleAddBackgroundStep,
+    handleEditBackgroundStep,
+    handleEditBackgroundStepType,
+    handleDeleteBackgroundStep,
+    handleDuplicateBackgroundStep,
+    handleReorderBackgroundSteps,
+    handleAddScenario,
+    handleRenameScenario,
+    handleDeleteScenario,
+    handleDuplicateScenario,
+    handleAddStep,
+    handleEditStep,
+    handleEditStepType,
+    handleDeleteStep,
+    handleDuplicateStep,
+    handleReorderSteps,
+  };
+} 

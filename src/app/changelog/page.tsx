@@ -3,20 +3,10 @@ export const dynamic = "force-dynamic";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Zap, Bug, Plus, Sparkles, Shield, Rocket, LucideIcon } from "lucide-react";
+import { CheckCircle,  Bug, Sparkles, Shield, Rocket, LucideIcon } from "lucide-react";
 import { useI18n } from "@/i18n";
 
-type Release = {
-  version: string;
-  date: string;
-  type: string;
-  title: string;
-  description: string;
-  changes: Array<{
-    type: string;
-    text: string;
-  }>;
-}
+
 
 export default function ChangelogPage() {
   const { t } = useI18n();
@@ -41,15 +31,7 @@ export default function ChangelogPage() {
     }
   ];
 
-  const iconMap: { [key: string]: LucideIcon } = {
-    new: Plus,
-    improvement: Zap,
-    fix: Bug,
-    security: Shield,
-    major: Rocket,
-    minor: Sparkles,
-    patch: CheckCircle,
-  };
+  
 
   const getChangeIcon = (type: string) => {
     const colors = {

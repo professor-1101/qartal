@@ -31,7 +31,7 @@ interface Project {
 export default function ProjectsContent() {
     const { t } = useI18n();
     const router = useRouter();
-    const { data: session, status } = useSession();
+    const {  status } = useSession();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -193,63 +193,54 @@ export default function ProjectsContent() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {projects.map((project) => {
                     return (
-                        <Card key={project.id} className="group hover:shadow-lg transition-shadow">
-                            <CardHeader className="pb-3">
-                                <div className="flex items-start justify-between">
-                                    <div className="space-y-1">
-                                        <CardTitle className="text-lg">{project.name}</CardTitle>
-                                        <CardDescription className="line-clamp-2">
-                                            {project.description || t("projects.noDescription")}
-                                        </CardDescription>
-                                    </div>
-                                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setSelectedProject(project);
-                                                setIsEditDialogOpen(true);
-                                            }}
-                                        >
-                                            <Icons.edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setSelectedProject(project);
-                                                setIsShareDialogOpen(true);
-                                            }}
-                                        >
-                                            <Icons.share className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setSelectedProject(project);
-                                                setIsDeleteDialogOpen(true);
-                                            }}
-                                        >
-                                            <Icons.trash className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
+                        <Card key={project.id} className="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-shadow flex flex-col justify-between min-h-[260px] p-4 text-right">
+                            <CardHeader className="pb-2 px-0">
+                                <CardTitle className="text-lg font-bold mb-1 text-right truncate" title={project.name}>{project.name}</CardTitle>
+                                <CardDescription className="line-clamp-3 w-full mb-2 min-h-[66px] text-gray-500 text-sm text-right overflow-hidden text-ellipsis leading-6" style={{direction:'rtl'}}>{project.description || t("projects.noDescription")}</CardDescription>
                             </CardHeader>
-                            <CardContent className="pt-0">
+                            <div className="flex items-center justify-end gap-2 px-0 pb-2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedProject(project);
+                                        setIsEditDialogOpen(true);
+                                    }}
+                                >
+                                    <Icons.edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedProject(project);
+                                        setIsShareDialogOpen(true);
+                                    }}
+                                >
+                                    <Icons.share className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedProject(project);
+                                        setIsDeleteDialogOpen(true);
+                                    }}
+                                >
+                                    <Icons.trash className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            <CardContent className="pt-0 mt-auto px-0">
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{t("projects.features")}</span>
                                         <Badge variant="secondary">{project._count.features}</Badge>
                                     </div>
-                                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{t("projects.lastUpdated")}</span>
                                         <span>{formatDate(project.updatedAt)}</span>
                                     </div>
-                                    <Button
-                                        className="w-full"
-                                        onClick={() => router.push(`/projects/${project.id}`)}
-                                    >
+                                    <Button className="w-full mt-2" onClick={() => router.push(`/projects/${project.id}`)}>
                                         {t("projects.viewProject")}
                                     </Button>
                                 </div>
