@@ -32,7 +32,11 @@
 ### مرحله 1: به‌روزرسانی سیستم
 
 ```bash
+# به‌روزرسانی پکیج‌ها
 sudo apt update && sudo apt upgrade -y
+
+# نصب ابزارهای ضروری
+sudo apt install curl wget git build-essential -y
 ```
 
 ### مرحله 2: نصب Node.js
@@ -87,11 +91,11 @@ GRANT ALL PRIVILEGES ON DATABASE qartal_db TO qartal_user;
 ### مرحله 6: نصب Git و کلون کردن پروژه
 
 ```bash
-# نصب Git
+# نصب Git (اگر نصب نیست)
 sudo apt install git -y
 
 # کلون کردن پروژه
-git clone https://github.com/your-username/qartal.git
+git clone https://github.com/professor-1101/qartal.git
 cd qartal
 ```
 
@@ -136,7 +140,7 @@ pnpm install
 pnpm add -D prisma
 ```
 
-### مرحله 9: تنظیم دیتابیس
+### مرحله 9: تنظیم Prisma
 
 ```bash
 # تولید Prisma Client
@@ -169,7 +173,7 @@ module.exports = {
     name: 'qartal',
     script: 'node_modules/next/dist/bin/next',
     args: 'start',
-    cwd: '/path/to/your/qartal',
+    cwd: '$(pwd)',
     instances: 1,
     autorestart: true,
     watch: false,
@@ -177,10 +181,17 @@ module.exports = {
     env: {
       NODE_ENV: 'production',
       PORT: 80
-    }
+    },
+    error_file: './logs/err.log',
+    out_file: './logs/out.log',
+    log_file: './logs/combined.log',
+    time: true
   }]
-}
+};
 EOF
+
+# ایجاد پوشه logs
+mkdir -p logs
 
 # شروع اپلیکیشن
 pm2 start ecosystem.config.js
@@ -190,7 +201,7 @@ pm2 startup
 pm2 save
 ```
 
-### مرحله 12: تنظیم Nginx (اختیاری)
+### مرحله 12: تنظیم Nginx
 
 ```bash
 # نصب Nginx
@@ -241,6 +252,21 @@ sudo ufw allow 443
 sudo ufw enable
 ```
 
+### مرحله 14: نصب SSL با Certbot (اختیاری)
+
+```bash
+# نصب Certbot
+sudo apt install certbot python3-certbot-nginx -y
+
+# دریافت گواهی SSL
+sudo certbot --nginx -d your-domain.com
+
+# تنظیم تجدید خودکار
+sudo crontab -e
+# اضافه کردن خط زیر:
+# 0 12 * * * /usr/bin/certbot renew --quiet
+```
+
 ## 🔧 دستورات مفید
 
 ### مدیریت اپلیکیشن
@@ -256,6 +282,9 @@ pm2 stop qartal
 
 # شروع
 pm2 start qartal
+
+# مشاهده وضعیت
+pm2 status
 ```
 
 ### مدیریت دیتابیس
@@ -271,6 +300,27 @@ pg_dump -U qartal_user qartal_db > backup.sql
 
 # بازگردانی بکاپ
 psql -U qartal_user qartal_db < backup.sql
+
+# بررسی اتصال دیتابیس
+psql -U qartal_user -d qartal_db -h localhost
+```
+
+### مدیریت Prisma
+```bash
+# تولید Prisma Client
+pnpm prisma generate
+
+# اجرای مایگریشن‌ها
+pnpm prisma db push
+
+# مشاهده schema
+pnpm prisma format
+
+# ریست کردن دیتابیس
+pnpm prisma migrate reset
+
+# ایجاد مایگریشن جدید
+pnpm prisma migrate dev --name migration_name
 ```
 
 ### به‌روزرسانی اپلیکیشن
@@ -288,11 +338,30 @@ pnpm build
 pm2 restart qartal
 ```
 
+### مدیریت Nginx
+```bash
+# بررسی وضعیت
+sudo systemctl status nginx
+
+# راه‌اندازی مجدد
+sudo systemctl restart nginx
+
+# بررسی کانفیگ
+sudo nginx -t
+
+# مشاهده لاگ‌ها
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+```
+
 ## 🐛 عیب‌یابی
 
 ### مشکل پورت 80
 اگر پورت 80 در دسترس نیست:
 ```bash
+# بررسی پورت‌های در حال استفاده
+sudo netstat -tulpn | grep :80
+
 # تغییر پورت در ecosystem.config.js
 env: {
   NODE_ENV: 'production',
@@ -307,6 +376,9 @@ psql -U qartal_user -d qartal_db -h localhost
 
 # بررسی لاگ‌های PostgreSQL
 sudo tail -f /var/log/postgresql/postgresql-*.log
+
+# راه‌اندازی مجدد PostgreSQL
+sudo systemctl restart postgresql
 ```
 
 ### مشکل PM2
@@ -317,6 +389,71 @@ pm2 flush
 # راه‌اندازی مجدد کامل
 pm2 delete qartal
 pm2 start ecosystem.config.js
+
+# بررسی وضعیت
+pm2 status
+pm2 logs qartal
+```
+
+### مشکل Nginx
+```bash
+# بررسی کانفیگ
+sudo nginx -t
+
+# راه‌اندازی مجدد
+sudo systemctl restart nginx
+
+# بررسی لاگ‌ها
+sudo tail -f /var/log/nginx/error.log
+```
+
+### مشکل Prisma
+```bash
+# پاک کردن cache
+rm -rf node_modules/.prisma
+
+# نصب مجدد Prisma
+pnpm prisma generate
+
+# بررسی schema
+pnpm prisma validate
+```
+
+## 📊 مانیتورینگ
+
+### نصب htop برای مانیتورینگ سیستم
+```bash
+sudo apt install htop -y
+htop
+```
+
+### نصب netdata برای مانیتورینگ پیشرفته
+```bash
+# نصب netdata
+bash <(curl -Ss https://my-netdata.io/kickstart.sh)
+```
+
+## 🔒 امنیت
+
+### تنظیم فایروال پیشرفته
+```bash
+# نصب fail2ban
+sudo apt install fail2ban -y
+
+# کپی کردن کانفیگ
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+
+# راه‌اندازی مجدد
+sudo systemctl restart fail2ban
+```
+
+### به‌روزرسانی خودکار امنیتی
+```bash
+# نصب unattended-upgrades
+sudo apt install unattended-upgrades -y
+
+# فعال‌سازی
+sudo dpkg-reconfigure -plow unattended-upgrades
 ```
 
 ## 📞 پشتیبانی
