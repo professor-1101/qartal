@@ -357,16 +357,34 @@ export const createPDFBlob = async (htmlContent: string): Promise<Blob> => {
         throw new Error('createPDFBlob باید فقط در کلاینت (مرورگر) اجرا شود.');
     }
 
+    try {
+        // Method 1: Try html2pdf.js first
+        return await createPDFWithHtml2Pdf(htmlContent);
+    } catch (error) {
+        console.warn('html2pdf.js failed, trying alternative method:', error);
+        // Method 2: Fallback to jsPDF with html2canvas
+        return await createPDFWithJsPDF(htmlContent);
+    }
+};
+
+// Method 1: Using html2pdf.js
+const createPDFWithHtml2Pdf = async (htmlContent: string): Promise<Blob> => {
     // Create a temporary div to hold the HTML content
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    tempDiv.style.top = '-9999px';
+    tempDiv.style.position = 'fixed';
+    tempDiv.style.left = '0';
+    tempDiv.style.top = '0';
     tempDiv.style.width = '800px';
+    tempDiv.style.height = 'auto';
+    tempDiv.style.visibility = 'hidden';
+    tempDiv.style.zIndex = '-9999';
     document.body.appendChild(tempDiv);
 
     try {
+        // Wait a bit for the DOM to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         // Import html2pdf dynamically
         const html2pdf = (await import('html2pdf.js')).default;
         
@@ -378,7 +396,10 @@ export const createPDFBlob = async (htmlContent: string): Promise<Blob> => {
                 scale: 2,
                 useCORS: true,
                 letterRendering: true,
-                width: 800
+                width: 800,
+                height: tempDiv.scrollHeight,
+                scrollX: 0,
+                scrollY: 0
             },
             jsPDF: { 
                 unit: 'mm', 
@@ -390,6 +411,68 @@ export const createPDFBlob = async (htmlContent: string): Promise<Blob> => {
         // Generate PDF as blob
         const pdfBlob = await html2pdf().set(opt).from(tempDiv).outputPdf('blob');
         
+        return pdfBlob;
+    } finally {
+        // Clean up
+        document.body.removeChild(tempDiv);
+    }
+};
+
+// Method 2: Using jsPDF with html2canvas directly
+const createPDFWithJsPDF = async (htmlContent: string): Promise<Blob> => {
+    // Create a temporary div to hold the HTML content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    tempDiv.style.position = 'fixed';
+    tempDiv.style.left = '0';
+    tempDiv.style.top = '0';
+    tempDiv.style.width = '800px';
+    tempDiv.style.height = 'auto';
+    tempDiv.style.visibility = 'hidden';
+    tempDiv.style.zIndex = '-9999';
+    document.body.appendChild(tempDiv);
+
+    try {
+        // Wait a bit for the DOM to be ready
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Import required libraries
+        const jsPDF = (await import('jspdf')).default;
+        const html2canvas = (await import('html2canvas')).default;
+
+        // Convert HTML to canvas
+        const canvas = await html2canvas(tempDiv, {
+            scale: 2,
+            useCORS: true,
+            width: 800,
+            height: tempDiv.scrollHeight,
+            scrollX: 0,
+            scrollY: 0
+        });
+
+        // Create PDF
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 295; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+
+        let position = 0;
+
+        // Add first page
+        pdf.addImage(canvas, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // Add additional pages if needed
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(canvas, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        // Convert to blob
+        const pdfBlob = pdf.output('blob');
         return pdfBlob;
     } finally {
         // Clean up
