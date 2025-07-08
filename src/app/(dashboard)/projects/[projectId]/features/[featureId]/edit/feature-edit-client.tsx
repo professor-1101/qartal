@@ -5,6 +5,7 @@ import { GherkinEditor } from "@/components/features/gherkin-editor/gherkin-edit
 import { Feature, Rule, Scenario, Step, Examples, Background } from "@/types/gherkin";
 import { toast } from "sonner";
 import isEqual from "fast-deep-equal";
+import React from 'react';
 
 // Update Scenario type to include keyword
 
@@ -64,8 +65,8 @@ function transformFeature(apiFeature: ApiFeature): Feature {
         }
     }
 
-    const scenarios: Scenario[] = apiFeature.scenarios.map(apiScenario => {
-        const steps: Step[] = apiScenario.steps.map(apiStep => ({
+    const scenarios: Scenario[] = (apiFeature.scenarios || []).map(apiScenario => {
+        const steps: Step[] = (apiScenario.steps || []).map(apiStep => ({
             id: apiStep.id,
             keyword: apiStep.keyword as Step["keyword"],
             text: apiStep.text,
@@ -80,7 +81,7 @@ function transformFeature(apiFeature: ApiFeature): Feature {
                 headers: firstExample.header || [],
                 rows: (firstExample.body || []).map((row, index) => ({
                     id: `row-${index}`,
-                    values: row
+                    values: row || []
                 }))
             };
         }
@@ -100,7 +101,7 @@ function transformFeature(apiFeature: ApiFeature): Feature {
     if (apiFeature.background) {
         background = {
             id: apiFeature.background.id,
-            steps: apiFeature.background.steps.map(apiStep => ({
+            steps: (apiFeature.background.steps || []).map(apiStep => ({
                 id: apiStep.id,
                 keyword: apiStep.keyword as Step["keyword"],
                 text: apiStep.text,
@@ -117,16 +118,16 @@ function transformFeature(apiFeature: ApiFeature): Feature {
         rules,
         scenarios,
         background,
-        order: (apiFeature as any).order ?? 0,
+        order: (apiFeature as any).order || 0,
     };
 }
 
 function toApiFeature(feature: Feature): any {
-    const scenarios = feature.scenarios.map(scenario => {
+    const scenarios = (feature.scenarios || []).map(scenario => {
         const examples = scenario.examples ? [{
             id: scenario.examples.id,
-            header: scenario.examples.headers,
-            body: scenario.examples.rows.map(row => row.values)
+            header: scenario.examples.headers || [],
+            body: (scenario.examples.rows || []).map(row => row.values || [])
         }] : [];
 
         return {
@@ -135,9 +136,8 @@ function toApiFeature(feature: Feature): any {
             description: scenario.description,
             type: scenario.type,
             tags: scenario.tags || [],
-            steps: scenario.steps,
+            steps: (scenario.steps || []),
             examples,
-            // Add keyword to API scenario
             keyword: scenario.type === 'scenario-outline' ? "Scenario Outline" : "Scenario"
         };
     });
@@ -148,7 +148,7 @@ function toApiFeature(feature: Feature): any {
         scenarios,
         background: feature.background ? {
             id: feature.background.id,
-            steps: feature.background.steps
+            steps: (feature.background.steps || [])
         } : null
     };
 }
@@ -248,6 +248,27 @@ interface FeatureEditClientProps {
     feature: Feature;
 }
 
+// Add error boundary for logging
+interface ErrorBoundaryState { hasError: boolean; }
+class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBoundaryState> {
+  constructor(props: React.PropsWithChildren<{}>) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(_error: unknown): ErrorBoundaryState {
+    return { hasError: true };
+  }
+  componentDidCatch(error: unknown, errorInfo: unknown) {
+    console.error('ErrorBoundary caught error:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return <div style={{color:'red'}}>یک خطای غیرمنتظره رخ داد. جزییات در کنسول.</div>;
+    }
+    return this.props.children;
+  }
+}
+
 export default function FeatureEditClient({ feature: initialFeature, project }: FeatureEditClientProps) {
     const [feature, setFeature] = useState<Feature>(initialFeature);
     const [dirty, setDirty] = useState(false);
@@ -315,9 +336,11 @@ export default function FeatureEditClient({ feature: initialFeature, project }: 
     };
 
     return (
-        <GherkinEditor
-            feature={feature}
-            onFeatureChange={handleFeatureChange}
-        />
+        <ErrorBoundary>
+            <GherkinEditor
+                feature={feature}
+                onFeatureChange={handleFeatureChange}
+            />
+        </ErrorBoundary>
     );
 }

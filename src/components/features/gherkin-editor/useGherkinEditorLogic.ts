@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Feature, Scenario, Step, Examples, Background } from "@/types/gherkin";
 import { gherkinBusinessLogic } from "@/lib/gherkin-business-logic";
 import isEqual from 'lodash/isEqual';
+import { nanoid } from 'nanoid';
 
 // --- BEGIN: Dirty state debug helpers ---
 function normalizeFeature(feature: Feature): any {
@@ -59,18 +60,48 @@ function normalizeFeature(feature: Feature): any {
 
 // --- END: Dirty state debug helpers ---
 
-export function useGherkinEditorLogic(initialFeature: Feature) {
-  const defaultFeature: Feature = {
-    name: '',
-    scenarios: [],
-    tags: [],
-    rules: [],
-    description: '',
-    background: undefined,
-    id: '',
-    order: 0,
+// --- Helper to ensure all ids are present only at creation ---
+function ensureStepIds(steps: Step[]): Step[] {
+  return steps.map(st => {
+    if (!st.id && process.env.NODE_ENV === 'development') {
+      console.warn('Step without id detected!', st);
+    }
+    return { ...st, id: st.id || nanoid() };
+  });
+}
+function ensureRowIds(rows: any[]): any[] {
+  return rows.map(row => {
+    if (!row.id && process.env.NODE_ENV === 'development') {
+      console.warn('Row without id detected!', row);
+    }
+    return { ...row, id: row.id || nanoid() };
+  });
+}
+function ensureExamplesIds(examples?: Examples): Examples | undefined {
+  if (!examples) return undefined;
+  if (!examples.id && process.env.NODE_ENV === 'development') {
+    console.warn('Examples without id detected!', examples);
+  }
+  return {
+    ...examples,
+    id: examples.id || nanoid(),
+    rows: ensureRowIds(examples.rows || [])
   };
+}
 
+// Move defaultFeature outside the hook
+const defaultFeature: Feature = {
+  name: '',
+  scenarios: [],
+  tags: [],
+  rules: [],
+  description: '',
+  background: undefined,
+  id: '',
+  order: 0,
+};
+
+export function useGherkinEditorLogic(initialFeature: Feature) {
   const [feature, setFeature] = useState<Feature>(initialFeature || defaultFeature);
   const [dirty, setDirty] = useState(false);
   const [showAddScenarioMenu, setShowAddScenarioMenu] = useState(false);
@@ -79,24 +110,25 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
   const [editingRule, setEditingRule] = useState<{ id?: string; name: string; description: string } | null>(null);
 
   useEffect(() => {
-    const normalizedFeature = {
-      ...defaultFeature,
-      ...initialFeature,
-      scenarios: initialFeature?.scenarios || [],
-      rules: initialFeature?.rules || [],
-      tags: initialFeature?.tags || [],
-    };
-    setFeature(normalizedFeature);
-    setDirty(false);
-  }, [initialFeature, defaultFeature]);
+    if (initialFeature) {
+      setFeature({
+        ...defaultFeature,
+        ...initialFeature,
+        scenarios: initialFeature?.scenarios || [],
+        rules: initialFeature?.rules || [],
+        tags: initialFeature?.tags || [],
+      });
+      setDirty(false);
+    }
+    // Remove defaultFeature from dependencies
+  }, [initialFeature]);
 
   useEffect(() => {
     const normFeature = normalizeFeature(feature);
     const normInitial = normalizeFeature(initialFeature || defaultFeature);
     const dirtyNow = !isEqual(normFeature, normInitial);
-    setDirty(dirtyNow);
-    // Debug logs removed as requested
-  }, [feature, initialFeature, defaultFeature]);
+    if (dirty !== dirtyNow) setDirty(dirtyNow);
+  }, [feature, initialFeature, dirty]);
 
   const gherkinText = useMemo(() => {
     return gherkinBusinessLogic.generateGherkinText(feature);
@@ -242,7 +274,7 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
   // Handlers for scenarios
   const handleAddScenario = (type: "scenario" | "scenario-outline" = "scenario") => {
     const newScenario: Scenario = {
-      id: `scenario-${Date.now()}`,
+      id: nanoid(),
       type: type,
       name: "سناریوی جدید",
       description: "",
@@ -250,9 +282,9 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
       steps: [],
       ...(type === "scenario-outline" ? {
         examples: {
-          id: `examples-${Date.now()}`,
+          id: nanoid(),
           headers: ["param1"],
-          rows: [{ id: `row-${Date.now()}`, values: [""] }]
+          rows: [{ id: nanoid(), values: [""] }]
         }
       } : {})
     };
@@ -280,13 +312,7 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
               type: newType,
               description: newDescription ?? s.description,
               examples: newType === "scenario-outline"
-                ? (examples
-                  ? { ...examples }
-                  : {
-                      id: `examples-${Date.now()}`,
-                      headers: ["param1"],
-                      rows: [{ id: `row-${Date.now()}`, values: [""] }]
-                    })
+                ? ensureExamplesIds(examples)
                 : undefined
             }
           : s
@@ -312,14 +338,13 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
               s,
               {
                 ...s,
-                id: `scenario-${Date.now()}`,
-                examples: s.examples
-                  ? {
-                      ...s.examples,
-                      id: `examples-${Date.now()}`,
-                      rows: s.examples.rows.map(row => ({ ...row, id: `row-${Date.now()}` }))
-                    }
-                  : undefined
+                id: nanoid(),
+                examples: s.examples ? {
+                  ...s.examples,
+                  id: nanoid(),
+                  rows: ensureRowIds(s.examples.rows || [])
+                } : undefined,
+                steps: ensureStepIds((s.steps || []).map(st => ({ ...st, id: nanoid() })))
               }
             ]
           : [s]
@@ -338,7 +363,7 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
               ...s,
               steps: [
                 ...s.steps,
-                { id: `step-${Date.now()}`, keyword: "فرض", text: "" }
+                { id: nanoid(), keyword: "فرض", text: "" }
               ]
             }
           : s
@@ -389,9 +414,9 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
       ...prev,
       scenarios: (prev.scenarios || []).map(s => ({
         ...s,
-        steps: s.steps.flatMap(st =>
+        steps: (s.steps || []).flatMap(st =>
           st.id === stepId
-            ? [st, { ...st, id: `step-${Date.now()}` }]
+            ? [st, { ...st, id: nanoid() }]
             : [st]
         )
       }))

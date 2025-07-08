@@ -107,11 +107,16 @@ export default async function FeatureEditPage({
         order: feature.order ?? 0,
     };
 
-    return (
-        <div className="h-full" dir="rtl">
-            {/* ارسال transformedFeature به FeatureEditClient */}
-             {/* ✅ ارسال شیء project با id */}
-            <FeatureEditClient feature={transformedFeature} project={{ id: project.id }} />
-        </div>
-    );
+    try {
+        return (
+            <div className="h-full" dir="rtl">
+                {/* ارسال transformedFeature به FeatureEditClient */}
+                 {/* ✅ ارسال شیء project با id */}
+                <FeatureEditClient feature={transformedFeature} project={{ id: project.id }} />
+            </div>
+        );
+    } catch (err) {
+        console.error('FeatureEditPage error:', err);
+        return <div style={{color:'red'}}>خطای غیرمنتظره! جزییات در کنسول.</div>;
+    }
 }

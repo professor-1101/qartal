@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: 'Qartal BDD Test Design',
+  title: 'کارتال BDD Test Design',
   description: 'پلتفرم ویرایش تست BDD',
   manifest: '/manifest.json',
   themeColor: '#2563eb',

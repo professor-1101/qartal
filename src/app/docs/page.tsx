@@ -86,7 +86,7 @@ export default function DocsPage() {
                             <div className="mb-8">
                                 <h2 className="text-2xl font-bold mb-2 text-right">راهنمای نصب و توسعه</h2>
                                 <p className="text-muted-foreground text-right">
-                                    برای توسعه و اجرای پروژه Qartal مراحل زیر را دنبال کنید:
+                                    برای توسعه و اجرای پروژه کارتال مراحل زیر را دنبال کنید:
                                 </p>
                             </div>
                             <Card>
@@ -166,7 +166,7 @@ export default function DocsPage() {
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold mb-2 text-right">نصب و راه‌اندازی</h2>
                                 <p className="text-muted-foreground text-right">
-                                    قارتال - پلتفرم ویرایش تست BDD<br />
+                                    کارتال - پلتفرم ویرایش تست BDD<br />
                                     پلتفرم مدرن و کاربردی برای طراحی و ویرایش تست‌های BDD (Behavior Driven Development) با پشتیبانی کامل از زبان فارسی و RTL.
                                 </p>
                                 <ul className="list-disc pr-6 text-right text-sm text-muted-foreground space-y-1 mt-4">

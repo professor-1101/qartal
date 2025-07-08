@@ -51,22 +51,22 @@ export const StepsList: React.FC<StepsListProps> = ({
             onDragEnd={handleDragEnd}
         >
             <SortableContext items={steps.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                <div className="flex flex-col gap-3"> {/* Reduced gap for tighter, more elegant list */}
+                <div className="flex flex-col gap-3">
                     {steps.map((step) => (
                         <StepCard
                             key={step.id}
                             step={step}
                             onEditStep={onEditStep}
-                            onEditStepType={onEditStepType} // Pass this down
+                            onEditStepType={onEditStepType}
                             onDeleteStep={onDeleteStep}
                             onDuplicateStep={onDuplicateStep}
                         />
                     ))}
                     <Button
-                        variant="ghost" // Changed to ghost for a more subtle "add" action
+                        variant="ghost"
                         size="sm"
-                        className="mt-2 w-fit self-start px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-800 rounded-md" // Refined styling
-                        onClick={() => onAddStep(scenarioId)} // Ensure onAddStep receives scenarioId
+                        className="mt-2 w-fit self-start px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-800 rounded-md"
+                        onClick={() => onAddStep(scenarioId)}
                         aria-label="Add new step"
                     >
                         <Plus className="h-4 w-4 ml-1.5" /> افزودن مرحله

@@ -22,70 +22,73 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
     const [activeColumn, setActiveColumn] = useState<number | null>(null);
     const [activeRow, setActiveRow] = useState<number | null>(null);
 
+    const safeHeaders = headers || [];
+    const safeRows = rows || [];
+
     // Add column
     const handleAddColumn = () => {
-        const newHeaders = [...headers, `پارامتر ${headers.length + 1}`];
-        const newRows = rows.map(row => ({ ...row, values: [...row.values, ""] }));
+        const newHeaders = [...safeHeaders, `پارامتر ${safeHeaders.length + 1}`];
+        const newRows = safeRows.map(row => ({ ...row, values: [...row.values, ""] }));
         onChange(newHeaders, newRows);
     };
 
     // Remove column
     const handleRemoveColumn = (colIdx: number) => {
-        const newHeaders = headers.filter((_, i) => i !== colIdx);
-        const newRows = rows.map(row => ({ ...row, values: row.values.filter((_, i) => i !== colIdx) }));
+        const newHeaders = safeHeaders.filter((_, i) => i !== colIdx);
+        const newRows = safeRows.map(row => ({ ...row, values: row.values.filter((_, i) => i !== colIdx) }));
         onChange(newHeaders, newRows);
     };
 
     // Edit header
     const handleHeaderEdit = (idx: number) => {
         setEditingHeader(idx);
-        setHeaderValue(headers[idx]);
+        setHeaderValue(safeHeaders[idx]);
     };
 
     const handleHeaderBlur = (idx: number) => {
         if (headerValue.trim() === "") return;
         
-        const newHeaders = [...headers];
+        const newHeaders = [...safeHeaders];
         newHeaders[idx] = headerValue;
-        onChange(newHeaders, rows);
+        onChange(newHeaders, safeRows);
         setEditingHeader(null);
     };
 
     // Add row
     const handleAddRow = () => {
-        const newRow = { id: Math.random().toString(36).slice(2), values: headers.map(() => "") };
-        onChange(headers, [...rows, newRow]);
+        const newRow = { id: Math.random().toString(36).slice(2), values: safeHeaders.map(() => "") };
+        onChange(safeHeaders, [...safeRows, newRow]);
     };
 
     // Remove row
     const handleRemoveRow = (rowIdx: number) => {
-        const newRows = rows.filter((_, i) => i !== rowIdx);
-        onChange(headers, newRows);
+        const newRows = safeRows.filter((_, i) => i !== rowIdx);
+        onChange(safeHeaders, newRows);
     };
 
     // Edit cell
     const handleCellEdit = (rowIdx: number, colIdx: number) => {
         setEditingCell({ row: rowIdx, col: colIdx });
-        setCellValue(rows[rowIdx].values[colIdx]);
+        setCellValue(safeRows[rowIdx].values[colIdx]);
     };
 
     const handleCellBlur = (rowIdx: number, colIdx: number) => {
-        const newRows = rows.map((row, i) =>
+        const newRows = safeRows.map((row, i) =>
             i === rowIdx ? { ...row, values: row.values.map((v, j) => (j === colIdx ? cellValue : v)) } : row
         );
-        onChange(headers, newRows);
+        onChange(safeHeaders, newRows);
         setEditingCell(null);
     };
 
     // Move column
     const handleMoveColumn = (fromIdx: number, toIdx: number) => {
-        if (toIdx < 0 || toIdx >= headers.length) return;
+        if (toIdx < 0 || toIdx >= safeHeaders.length) return;
         
-        const newHeaders = [...headers];
+        const newHeaders = [...safeHeaders];
         const [moved] = newHeaders.splice(fromIdx, 1);
         newHeaders.splice(toIdx, 0, moved);
         
-        const newRows = rows.map(row => {
+        const newRows = safeRows.map(row => {
             const newValues = [...row.values];
             const [movedValue] = newValues.splice(fromIdx, 1);
             newValues.splice(toIdx, 0, movedValue);
@@ -100,7 +103,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
             <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-base flex items-center gap-2">
                     <Badge variant="secondary">مثال‌ها</Badge>
-                    <span className="text-gray-600 text-sm">({rows.length} سطر، {headers.length} ستون)</span>
+                    <span className="text-gray-600 text-sm">({safeRows.length} سطر، {safeHeaders.length} ستون)</span>
                 </h3>
                 <div className="flex gap-2">
                     <Button 
@@ -129,7 +132,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                     <TableHeader className="bg-gray-50">
                         <TableRow>
                             {/* Column headers */}
-                            {headers.map((header, idx) => (
+                            {safeHeaders.map((header, idx) => (
                                 <TableHead 
                                     key={idx} 
                                     className="relative group p-0 border-r"
@@ -171,7 +174,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                                                 <TooltipContent>ویرایش نام ستون</TooltipContent>
                                             </Tooltip>
                                             
-                                            {headers.length > 1 && (
+                                            {safeHeaders.length > 1 && (
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <Button
@@ -212,7 +215,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                                                             size="icon"
                                                             className="h-3 w-6 text-gray-500 hover:text-gray-700"
                                                             onClick={() => handleMoveColumn(idx, idx + 1)}
-                                                            disabled={idx === headers.length - 1}
+                                                            disabled={idx === safeHeaders.length - 1}
                                                             aria-label="انتقال به راست"
                                                         >
                                                             <ArrowRight className="h-3 w-3" />
@@ -236,10 +239,10 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                     </TableHeader>
                     
                     <TableBody>
-                        {rows.length === 0 ? (
+                        {safeRows.length === 0 ? (
                             <TableRow>
                                 <TableCell 
-                                    colSpan={headers.length + 1} 
+                                    colSpan={safeHeaders.length + 1} 
                                     className="text-center text-gray-400 py-8"
                                 >
                                     <div className="flex flex-col items-center justify-center gap-2">
@@ -259,7 +262,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            rows.map((row, rowIdx) => (
+                            safeRows.map((row, rowIdx) => (
                                 <TableRow 
                                     key={row.id} 
                                     className="hover:bg-gray-50"
@@ -332,7 +335,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                 </Table>
             </div>
             
-            {rows.length > 0 && (
+            {safeRows.length > 0 && (
                 <div className="mt-4 flex justify-center">
                     <Button 
                         variant="outline" 
