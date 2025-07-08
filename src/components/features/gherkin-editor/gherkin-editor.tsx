@@ -67,6 +67,7 @@ export function GherkinEditor({ feature: initialFeature, onFeatureChange }: Gher
                             onDeleteStep={logic.handleDeleteStep}
                             onDuplicateStep={logic.handleDuplicateStep}
                             onReorderSteps={logic.handleReorderSteps}
+                            onReorderScenarios={logic.handleReorderScenarios}
                         />
                         <div className="block lg:hidden">
                             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-6">
