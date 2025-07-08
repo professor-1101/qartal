@@ -436,6 +436,15 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
     setDirty(true);
   };
 
+  // Handler for reordering scenarios (DnD)
+  const handleReorderScenarios = (newScenarios: Scenario[]) => {
+    setFeature(prev => ({
+      ...prev,
+      scenarios: newScenarios,
+    }));
+    setDirty(true);
+  };
+
   return {
     feature,
     setFeature,
@@ -468,5 +477,6 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
     handleDeleteStep,
     handleDuplicateStep,
     handleReorderSteps,
+    handleReorderScenarios,
   };
 } 
