@@ -13,7 +13,7 @@ export default function DashboardPage() {
       <div className="mb-8 flex items-center gap-3">
         <Building2 className="h-8 w-8 text-primary" />
         <h1 className="text-3xl font-bold">
-          قارطال
+          کارتال
           <span className="text-muted-foreground text-lg font-normal">
             پلتفرم QA
           </span>

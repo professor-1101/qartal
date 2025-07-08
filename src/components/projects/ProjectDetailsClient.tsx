@@ -8,7 +8,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Edit,  FileCode, CheckSquare, GitBranch, EllipsisVertical, Share2, Trash2, Download } from "lucide-react";
+import { Plus, Edit,  FileCode, CheckSquare, GitBranch, EllipsisVertical, Share2, Trash2, Download, GripVertical } from "lucide-react";
 import { Feature, Project } from '@/types/index';
 import { CreateFeatureSheet } from "@/components/projects/create-feature-sheet";
 import { ShareProjectDialog } from "@/components/projects/share-project-dialog";
@@ -56,7 +56,7 @@ interface ProjectDetailsClientProps {
 }
 
 // Sortable Feature Item
-function SortableFeature({ feature, children }: { feature: Feature; children: React.ReactNode }) {
+function SortableFeature({ feature, children }: { feature: Feature; children: (props: { listeners: any }) => React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: feature.id });
   return (
     <div
@@ -65,12 +65,11 @@ function SortableFeature({ feature, children }: { feature: Feature; children: Re
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
-        cursor: 'grab',
+        position: 'relative',
       }}
       {...attributes}
-      {...listeners}
     >
-      {children}
+      {children({ listeners })}
     </div>
   );
 }
@@ -266,64 +265,75 @@ export default function ProjectDetailsClient({ project, features: initialFeature
                 <div className="space-y-10">
                   {features.map((feature, index) => (
                     <SortableFeature key={feature.id} feature={feature}>
-                        <div key={feature.id} className="relative">
-                            {/* Timeline vertical line */}
-                            {index !== features.length - 1 && (
-                                <div className="absolute right-5 top-10 w-px h-full bg-border -mr-px" />
-                            )}
-
-                            <div className="flex gap-4 sm:gap-6">
-                                <div className="flex-shrink-0 z-10">
-                                    <div className="w-11 h-11 rounded-full bg-background border-2 flex items-center justify-center">
-                                        <FileCode className="w-5 h-5 text-muted-foreground" />
-                                    </div>
-                                </div>
-                                <div className="flex-1 min-w-0 pt-1.5">
-                                    <div className="flex items-center flex-row-reverse justify-end gap-2 mb-3 text-right">
-                                        <span className="font-bold text-lg truncate max-w-xs" title={feature.name}>{feature.name}</span>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" aria-label="Feature Actions">
-                                                    <EllipsisVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent className="w-40 text-right p-2" align="end">
-                                                <div dir="rtl">
-                                                    <DropdownMenuItem onSelect={() => window.location.href = `/projects/${project.id}/features/${feature.id}/edit`}>
-                                                        <Edit className="h-4 w-4 ml-2" />
-                                                        ویرایش
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onSelect={() => setFeatureToDelete(feature)}
-                                                        className="text-red-600 focus:text-red-700 focus:bg-red-50"
-                                                    >
-                                                        <span className="flex items-center">
-                                                            <Trash2 className="h-4 w-4 ml-2" />
-                                                            حذف
-                                                        </span>
-                                                    </DropdownMenuItem>
-                                                </div>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        {feature.description}
-                                    </p>
-                                    <div className="flex items-center gap-4 text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <CheckSquare className="h-4 w-4 text-blue-500" />
-                                            <span className="font-medium">{feature.background?.steps?.length || 0}</span>
-                                            <span className="text-muted-foreground">مراحل</span>
+                        {({ listeners }) => (
+                            <div key={feature.id} className="relative">
+                                {/* Timeline vertical line */}
+                                {index !== features.length - 1 && (
+                                    <div className="absolute right-5 top-10 w-px h-full bg-border -mr-px" />
+                                )}
+                                <div className="flex gap-4 sm:gap-6 items-start">
+                                    <div className="flex-shrink-0 z-10">
+                                        <div className="w-11 h-11 rounded-full bg-background border-2 flex items-center justify-center">
+                                            <FileCode className="w-5 h-5 text-muted-foreground" />
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <GitBranch className="h-4 w-4 text-green-500" />
-                                            <span className="font-medium">{feature.scenarios?.length || 0}</span>
-                                            <span className="text-muted-foreground">سناریوها</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0 pt-1.5">
+                                        {/* Drag handle در گوشه بالا سمت راست کارت */}
+                                        <button
+                                            type="button"
+                                            aria-label="جابجایی ویژگی"
+                                            style={{ position: 'absolute', top: 12, right: -22, background: 'none', border: 'none', cursor: 'grab', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
+                                            {...listeners}
+                                        >
+                                            <GripVertical className="w-4 h-4 text-gray-300 hover:text-gray-500 transition" />
+                                        </button>
+                                        <div className="flex items-center flex-row-reverse justify-end gap-2 mb-3 text-right">
+                                            <span className="font-bold text-lg truncate max-w-xs" title={feature.name}>{feature.name}</span>
+                                            {/* منو */}
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" aria-label="Feature Actions">
+                                                        <EllipsisVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent className="w-40 text-right p-2" align="end">
+                                                    <div dir="rtl">
+                                                        <DropdownMenuItem onSelect={() => window.location.href = `/projects/${project.id}/features/${feature.id}/edit`}>
+                                                            <Edit className="h-4 w-4 ml-2" />
+                                                            ویرایش
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onSelect={() => setFeatureToDelete(feature)}
+                                                            className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                                                        >
+                                                            <span className="flex items-center">
+                                                                <Trash2 className="h-4 w-4 ml-2" />
+                                                                حذف
+                                                            </span>
+                                                        </DropdownMenuItem>
+                                                    </div>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            {feature.description}
+                                        </p>
+                                        <div className="flex items-center gap-4 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <CheckSquare className="h-4 w-4 text-blue-500" />
+                                                <span className="font-medium">{feature.background?.steps?.length || 0}</span>
+                                                <span className="text-muted-foreground">مراحل</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <GitBranch className="h-4 w-4 text-green-500" />
+                                                <span className="font-medium">{feature.scenarios?.length || 0}</span>
+                                                <span className="text-muted-foreground">سناریوها</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </SortableFeature>
                   ))}
                 </div>

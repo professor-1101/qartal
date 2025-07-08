@@ -1,10 +1,8 @@
 import { AuthOptions } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 export const authOptions: AuthOptions = {
     adapter: PrismaAdapter(prisma),
@@ -60,14 +58,24 @@ export const authOptions: AuthOptions = {
                 token.id = user.id;
                 token.firstName = user.firstName;
                 token.lastName = user.lastName;
+                token.email = user.email;
             }
             return token;
         },
         async session({ session, token }: any) {
             if (token && session.user) {
-                (session.user as any).id = token.id;
-                (session.user as any).firstName = token.firstName;
-                (session.user as any).lastName = token.lastName;
+                // اطلاعات جدید را از دیتابیس بخوان
+                const user = await prisma.user.findUnique({
+                    where: { email: token.email },
+                    select: { id: true, firstName: true, lastName: true, email: true, image: true }
+                });
+                if (user) {
+                    session.user.id = user.id;
+                    session.user.firstName = user.firstName;
+                    session.user.lastName = user.lastName;
+                    session.user.email = user.email;
+                    session.user.image = user.image;
+                }
             }
             return session;
         },

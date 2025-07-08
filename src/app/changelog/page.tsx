@@ -13,11 +13,11 @@ export default function ChangelogPage() {
 
   const changelogData = [
     {
-      version: "1.0.0",
-      date: "۱ آوریل ۲۰۲۴",
+      version: "0.1.0",
+      date: "۱۴ تیر ۱۴۰۳",
       type: "اصلی",
       title: "اولین نسخه و ویژگی‌های اصلی",
-      description: "اولین نسخه و انتشار قارطال، پایه‌گذاری پلتفرم مدرن تست BDD.",
+      description: "اولین نسخه و انتشار کارتال، پایه‌گذاری پلتفرم مدرن تست BDD.",
       changes: [
         { type: "new", text: "داشبورد مدیریت پروژه با طراحی مینیمال و حرفه‌ای shadcn/ui" },
         { type: "new", text: "لیست پروژه‌ها با آواتار، شمارنده ویژگی‌ها و توضیحات کامل" },
@@ -28,7 +28,20 @@ export default function ChangelogPage() {
         { type: "improvement", text: "استفاده مداوم از کامپوننت‌های shadcn/ui برای تمام لیست‌ها، کارت‌ها و نشان‌ها" },
         { type: "improvement", text: "طرح واکنش‌گرا و تایپوگرافی تمیز و خوانا" }
       ]
-    }
+    },
+    {
+      version: "0.2.0",
+      date: "۱۴ تیر ۱۴۰۳",
+      type: "minor",
+      title: "بهبود مستندات و رفع باگ‌ها",
+      description: "بهبود تجربه کاربری، مستندات و رفع باگ‌های مهم.",
+      changes: [
+        { type: "new", text: "صفحه مستندات جدید با محتوای README و نمایش اتومات نسخه" },
+        { type: "improvement", text: "حذف سرچ و سایدبار از مستندات" },
+        { type: "fix", text: "رفع کامل باگ dirty state و اضافه شدن لاگ دقیق تغییرات" },
+        { type: "improvement", text: "بهبود تجربه کاربری و ساختار کد و حذف لاگ‌های دیباگ" }
+      ]
+    },
   ];
 
   

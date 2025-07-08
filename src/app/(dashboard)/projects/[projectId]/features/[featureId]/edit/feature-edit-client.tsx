@@ -79,7 +79,7 @@ function transformFeature(apiFeature: ApiFeature): Feature {
                 id: firstExample.id,
                 headers: firstExample.header || [],
                 rows: (firstExample.body || []).map((row, index) => ({
-                    id: `row-${index}-${Date.now()}`,
+                    id: `row-${index}`,
                     values: row
                 }))
             };
@@ -153,6 +153,96 @@ function toApiFeature(feature: Feature): any {
     };
 }
 
+// تابع کمکی برای حذف idهای غیرمهم و نرمال‌سازی داده جهت مقایسه dirty
+function normalizeFeature(feature: Feature): any {
+    return {
+        ...feature,
+        scenarios: Array.isArray(feature.scenarios) ? feature.scenarios.map(scenario => ({
+            ...scenario,
+            steps: Array.isArray(scenario.steps) ? scenario.steps.map(step => ({
+                ...step,
+                dataTable: step.dataTable ? {
+                    ...step.dataTable,
+                    rows: Array.isArray(step.dataTable.rows) ? step.dataTable.rows.map(row => ({ values: row.values })) : []
+                } : undefined,
+                docString: step.docString ? { ...step.docString } : undefined
+            })) : [],
+            examples: scenario.examples ? {
+                ...scenario.examples,
+                rows: Array.isArray(scenario.examples.rows) ? scenario.examples.rows.map(row => ({ values: row.values })) : []
+            } : undefined,
+            tags: Array.isArray(scenario.tags) ? scenario.tags : []
+        })) : [],
+        background: feature.background ? {
+            ...feature.background,
+            steps: Array.isArray(feature.background.steps) ? feature.background.steps.map(step => ({
+                ...step,
+                dataTable: step.dataTable ? {
+                    ...step.dataTable,
+                    rows: Array.isArray(step.dataTable.rows) ? step.dataTable.rows.map(row => ({ values: row.values })) : []
+                } : undefined,
+                docString: step.docString ? { ...step.docString } : undefined
+            })) : []
+        } : undefined,
+        rules: Array.isArray(feature.rules) ? feature.rules.map(rule => ({
+            ...rule,
+            scenarios: Array.isArray(rule.scenarios) ? rule.scenarios.map(scenario => ({
+                ...scenario,
+                steps: Array.isArray(scenario.steps) ? scenario.steps.map(step => ({
+                    ...step,
+                    dataTable: step.dataTable ? {
+                        ...step.dataTable,
+                        rows: Array.isArray(step.dataTable.rows) ? step.dataTable.rows.map(row => ({ values: row.values })) : []
+                    } : undefined,
+                    docString: step.docString ? { ...step.docString } : undefined
+                })) : [],
+                examples: scenario.examples ? {
+                    ...scenario.examples,
+                    rows: Array.isArray(scenario.examples.rows) ? scenario.examples.rows.map(row => ({ values: row.values })) : []
+                } : undefined,
+                tags: Array.isArray(scenario.tags) ? scenario.tags : []
+            })) : []
+        })) : [],
+        tags: Array.isArray(feature.tags) ? feature.tags : [],
+    };
+}
+
+// تابع diff ساده برای مقایسه objectها و نمایش تفاوت‌ها
+function diffObjects(obj1: any, obj2: any, path = ""): string[] {
+    const diffs: string[] = [];
+    const allKeys = new Set([...Object.keys(obj1 || {}), ...Object.keys(obj2 || {})]);
+    for (const key of Array.from(allKeys)) {
+        const val1 = obj1 ? obj1[key] : undefined;
+        const val2 = obj2 ? obj2[key] : undefined;
+        const currentPath = path ? `${path}.${key}` : key;
+        if (Array.isArray(val1) && Array.isArray(val2)) {
+            if (val1.length !== val2.length) {
+                diffs.push(`${currentPath}: length ${val1.length} !== ${val2.length}`);
+            } else {
+                for (let i = 0; i < val1.length; i++) {
+                    diffs.push(...diffObjects(val1[i], val2[i], `${currentPath}[${i}]`));
+                }
+            }
+        } else if (typeof val1 === "object" && typeof val2 === "object" && val1 && val2) {
+            diffs.push(...diffObjects(val1, val2, currentPath));
+        } else if (val1 !== val2) {
+            diffs.push(`${currentPath}: ${JSON.stringify(val1)} !== ${JSON.stringify(val2)}`);
+        }
+    }
+    return diffs;
+}
+
+function isFeatureEmpty(feature: Feature): boolean {
+    return (
+        (!feature.name || feature.name.trim() === "") &&
+        (!feature.description || feature.description.trim() === "") &&
+        (!feature.tags || feature.tags.length === 0) &&
+        (!feature.rules || feature.rules.length === 0) &&
+        (!feature.scenarios || feature.scenarios.length === 0) &&
+        (!feature.background || !feature.background.steps || feature.background.steps.length === 0)
+    );
+}
+
 interface FeatureEditClientProps {
     project: { id: string };
     feature: Feature;
@@ -164,7 +254,30 @@ export default function FeatureEditClient({ feature: initialFeature, project }: 
 
     // ردیابی تغییرات dirty
     useEffect(() => {
-        setDirty(!isEqual(feature, initialFeature));
+        const normFeature = normalizeFeature(feature);
+        const normInitial = normalizeFeature(initialFeature);
+        // Special case: if both are empty, never dirty
+        if (isFeatureEmpty(normFeature) && isFeatureEmpty(normInitial)) {
+            setDirty(false);
+            return;
+        }
+        const dirtyNow = !isEqual(normFeature, normInitial);
+        setDirty(dirtyNow);
+        if (dirtyNow) {
+            // eslint-disable-next-line no-console
+            const diffs = diffObjects(normFeature, normInitial);
+            if (diffs.length === 0) {
+                console.log('[DIRTY DEBUG] تفاوتی پیدا نشد ولی dirty=true!');
+            } else {
+                console.log('[DIRTY DEBUG] لیست دقیق تغییرات (unsaved changes):');
+                diffs.forEach((d, i) => {
+                    console.log(`  ${i + 1}. ${d}`);
+                });
+            }
+            // برای بررسی بیشتر، آبجکت کامل را هم چاپ کن
+            console.log('[DIRTY DEBUG] feature فعلی:', normFeature);
+            console.log('[DIRTY DEBUG] feature اولیه:', normInitial);
+        }
     }, [feature, initialFeature]);
 
     // هشدار خروج در صورت تغییرات ذخیره‌نشده
@@ -197,7 +310,6 @@ export default function FeatureEditClient({ feature: initialFeature, project }: 
             setFeature(transformFeature(savedFeature));
             toast.success("ویژگی با موفقیت ذخیره شد!");
         } catch (error) {
-            console.error("Error saving feature:", error);
             toast.error("ذخیره ویژگی با خطا مواجه شد.");
         }
     };

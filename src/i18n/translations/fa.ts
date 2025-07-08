@@ -223,7 +223,7 @@ export const fa = {
     },
     projects: {
         "title": "پروژه‌ها",
-        "description": "لیستی از تمام پروژه‌های شما.",
+        "description": "لیستی از تمام پروژه‌های شما",
         "createNew": "ایجاد پروژه",
         "noProjects": "هیچ پروژه‌ای یافت نشد!",
         "noProjectsDescription": "هنوز هیچ پروژه‌ای ایجاد نکرده‌اید. برای شروع، پروژه جدیدی ایجاد کنید.",

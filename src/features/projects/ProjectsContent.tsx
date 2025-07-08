@@ -70,7 +70,6 @@ export default function ProjectsContent() {
             const data = await response.json();
             setProjects(data);
         } catch (err) {
-            console.error("Error fetching projects:", err);
             setError("خطا در بارگذاری پروژه‌ها");
         } finally {
             setLoading(false);
@@ -99,7 +98,6 @@ export default function ProjectsContent() {
             setProjects(prev => [newProject, ...prev]);
             setIsCreateDialogOpen(false);
         } catch (err) {
-            console.error("Error creating project:", err);
             // Handle error (show toast, etc.)
         }
     };
@@ -118,7 +116,6 @@ export default function ProjectsContent() {
             setIsDeleteDialogOpen(false);
             setSelectedProject(null);
         } catch (err) {
-            console.error("Error deleting project:", err);
             // Handle error (show toast, etc.)
         }
     };
@@ -142,7 +139,6 @@ export default function ProjectsContent() {
             setIsEditDialogOpen(false);
             setSelectedProject(null);
         } catch (err) {
-            console.error("Error updating project:", err);
             // Handle error (show toast, etc.)
         }
     };
@@ -190,10 +186,10 @@ export default function ProjectsContent() {
                 }
             />
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {projects.map((project) => {
                     return (
-                        <Card key={project.id} className="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-shadow flex flex-col justify-between min-h-[260px] p-4 text-right">
+                        <Card key={project.id} className="group bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-lg transition-shadow flex flex-col justify-between min-h-[260px] p-4">
                             <CardHeader className="pb-2 px-0">
                                 <CardTitle className="text-lg font-bold mb-1 text-right truncate" title={project.name}>{project.name}</CardTitle>
                                 <CardDescription className="line-clamp-3 w-full mb-2 min-h-[66px] text-gray-500 text-sm text-right overflow-hidden text-ellipsis leading-6" style={{direction:'rtl'}}>{project.description || t("projects.noDescription")}</CardDescription>

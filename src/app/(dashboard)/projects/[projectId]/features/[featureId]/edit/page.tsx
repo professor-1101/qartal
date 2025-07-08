@@ -90,7 +90,7 @@ export default async function FeatureEditPage({
                  id: scenario.examples[0].id, // فرض می کنیم همیشه یک Example داریم یا اونی که هست اولی است
                  headers: scenario.examples[0].header ?? [], // ✅ مطمئن شوید header آرایه است
                  rows: (scenario.examples[0].body ?? []).map((row: string[], index: number) => ({ // ✅ مطمئن شوید body آرایه آرایه است
-                     id: `row-${scenario.examples[0].id}-${index}`, // ID برای هر سطر
+                     id: `row-${index}`,
                      values: row,
                  }))
             } : undefined // ✅ اگر مثالی نبود undefined باشد طبق تایپ Feature

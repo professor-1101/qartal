@@ -44,7 +44,7 @@ export default function DashboardPageHeader({
                         </BreadcrumbList>
                     </Breadcrumb>
                 )}
-                <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+                <h1 className="text-3xl font-bold">{title}</h1>
                 {description && (
                     <div className="text-muted-foreground max-w-prose">{description}</div>
                 )}

@@ -13,6 +13,7 @@ import { useI18n } from "@/i18n";
 import { useSession } from "next-auth/react";
 import { toast } from "@/components/ui/use-toast";
 import DashboardPageHeader from "@/components/layout/DashboardPageHeader";
+import { signIn } from "next-auth/react";
 
 export default function SettingsPage() {
   const { t } = useI18n();
@@ -73,7 +74,12 @@ export default function SettingsPage() {
             email: profileData.email,
           },
         });
-
+        // Force session refresh by signing in again
+        await signIn("credentials", {
+          email: profileData.email,
+          password: undefined, // رمز عبور نیاز نیست چون session فعال است
+          redirect: false,
+        });
         toast.success("اطلاعات پروفایل با موفقیت به‌روزرسانی شد");
       } else {
         const error = await response.json();
@@ -149,7 +155,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="container" dir="rtl">
+    <div dir="rtl">
       <DashboardPageHeader
         title={t("settings.title")}
         description={t("settings.description")}
@@ -189,7 +195,7 @@ export default function SettingsPage() {
         {/* Content Area */}
         <div className="flex-1">
           {activeTab === "profile" && (
-            <Card>
+            <Card className="max-w-2xl">
               <CardHeader className="pb-6">
                 <CardTitle className="flex items-center gap-2 text-xl text-right">
                   <User className="h-5 w-5" />
@@ -229,7 +235,8 @@ export default function SettingsPage() {
                         type="email"
                         placeholder={t("auth.form.emailPlaceholder")}
                         value={profileData.email}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        readOnly
+                        disabled
                         className="h-8 text-sm text-right"
                       />
                     </div>
@@ -246,7 +253,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab === "security" && (
-            <Card>
+            <Card className="max-w-2xl">
               <CardHeader className="pb-6">
                 <CardTitle className="flex items-center gap-2 text-xl text-right">
                   <Shield className="h-5 w-5" />

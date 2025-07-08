@@ -148,3 +148,22 @@
     position: relative;
     z-index: 1;
 }
+
+/* RTL Markdown support */
+.prose-rtl {
+  direction: rtl;
+  text-align: right;
+}
+.prose-rtl pre, .prose-rtl code {
+  direction: ltr;
+  text-align: left;
+  font-family: 'Fira Mono', 'Consolas', 'monospace';
+}
+.prose-rtl table {
+  direction: rtl;
+  text-align: right;
+}
+.prose-rtl ul, .prose-rtl ol {
+  padding-right: 1.5em;
+  padding-left: 0;
+}

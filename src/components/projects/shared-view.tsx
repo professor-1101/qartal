@@ -252,7 +252,7 @@ export function SharedProjectView({ project, features = [] }: SharedProjectViewP
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="space-y-1.5">
-                                    <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+                                    <h1 className="text-2xl font-bold">{project.name}</h1>
                                     <p className="text-muted-foreground">{project.description}</p>
                                 </div>
                             </div>

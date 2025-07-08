@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 export async function POST() {
   try {
@@ -43,7 +41,6 @@ export async function POST() {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Create test user error:", error);
     return NextResponse.json(
       { error: "خطا در ایجاد کاربر تست" },
       { status: 500 }

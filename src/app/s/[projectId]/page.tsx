@@ -102,9 +102,6 @@ export default async function SharePage({
         order: feature.order ?? 0,
     }));
 
-    // Debug log for transformed features and scenarios
-    console.log('transformedFeatures:', JSON.stringify(transformedFeatures, null, 2));
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-8">

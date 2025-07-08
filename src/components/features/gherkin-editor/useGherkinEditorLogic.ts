@@ -3,6 +3,62 @@ import { Feature, Scenario, Step, Examples, Background } from "@/types/gherkin";
 import { gherkinBusinessLogic } from "@/lib/gherkin-business-logic";
 import isEqual from 'lodash/isEqual';
 
+// --- BEGIN: Dirty state debug helpers ---
+function normalizeFeature(feature: Feature): any {
+    return {
+        ...feature,
+        scenarios: Array.isArray(feature.scenarios) ? feature.scenarios.map(scenario => ({
+            ...scenario,
+            steps: Array.isArray(scenario.steps) ? scenario.steps.map(step => ({
+                ...step,
+                dataTable: step.dataTable ? {
+                    ...step.dataTable,
+                    rows: Array.isArray(step.dataTable.rows) ? step.dataTable.rows.map(row => ({ values: row.values })) : []
+                } : undefined,
+                docString: step.docString ? { ...step.docString } : undefined
+            })) : [],
+            examples: scenario.examples ? {
+                ...scenario.examples,
+                rows: Array.isArray(scenario.examples.rows) ? scenario.examples.rows.map(row => ({ values: row.values })) : []
+            } : undefined,
+            tags: Array.isArray(scenario.tags) ? scenario.tags : []
+        })) : [],
+        background: feature.background ? {
+            ...feature.background,
+            steps: Array.isArray(feature.background.steps) ? feature.background.steps.map(step => ({
+                ...step,
+                dataTable: step.dataTable ? {
+                    ...step.dataTable,
+                    rows: Array.isArray(step.dataTable.rows) ? step.dataTable.rows.map(row => ({ values: row.values })) : []
+                } : undefined,
+                docString: step.docString ? { ...step.docString } : undefined
+            })) : []
+        } : undefined,
+        rules: Array.isArray(feature.rules) ? feature.rules.map(rule => ({
+            ...rule,
+            scenarios: Array.isArray(rule.scenarios) ? rule.scenarios.map(scenario => ({
+                ...scenario,
+                steps: Array.isArray(scenario.steps) ? scenario.steps.map(step => ({
+                    ...step,
+                    dataTable: step.dataTable ? {
+                        ...step.dataTable,
+                        rows: Array.isArray(step.dataTable.rows) ? step.dataTable.rows.map(row => ({ values: row.values })) : []
+                    } : undefined,
+                    docString: step.docString ? { ...step.docString } : undefined
+                })) : [],
+                examples: scenario.examples ? {
+                    ...scenario.examples,
+                    rows: Array.isArray(scenario.examples.rows) ? scenario.examples.rows.map(row => ({ values: row.values })) : []
+                } : undefined,
+                tags: Array.isArray(scenario.tags) ? scenario.tags : []
+            })) : []
+        })) : [],
+        tags: Array.isArray(feature.tags) ? feature.tags : [],
+    };
+}
+
+// --- END: Dirty state debug helpers ---
+
 export function useGherkinEditorLogic(initialFeature: Feature) {
   const defaultFeature: Feature = {
     name: '',
@@ -32,11 +88,15 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
     };
     setFeature(normalizedFeature);
     setDirty(false);
-  }, [initialFeature]);
+  }, [initialFeature, defaultFeature]);
 
   useEffect(() => {
-    setDirty(!isEqual(feature, initialFeature || defaultFeature));
-  }, [feature, initialFeature]);
+    const normFeature = normalizeFeature(feature);
+    const normInitial = normalizeFeature(initialFeature || defaultFeature);
+    const dirtyNow = !isEqual(normFeature, normInitial);
+    setDirty(dirtyNow);
+    // Debug logs removed as requested
+  }, [feature, initialFeature, defaultFeature]);
 
   const gherkinText = useMemo(() => {
     return gherkinBusinessLogic.generateGherkinText(feature);

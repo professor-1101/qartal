@@ -44,7 +44,6 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(projects);
   } catch (error) {
-    console.error("Error fetching projects:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -115,7 +114,6 @@ export async function POST(request: NextRequest) {
           attempts++;
           continue; // try again
         }
-        console.error("Unexpected error creating project:", error);
         return NextResponse.json(
           { error: "Internal server error" },
           { status: 500 }
@@ -133,7 +131,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(project, { status: 201 });
 
   } catch (error) {
-    console.error("Error creating project:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

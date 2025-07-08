@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
 import { useI18n } from "@/i18n";
+import { Card } from "@/components/ui/card";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -75,104 +76,106 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          {mode === "register" && (
-            <>
-              <FormField
-                control={form.control}
-                name={"firstName" as any}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("auth.form.firstName")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t("auth.form.firstNamePlaceholder")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={"lastName" as any}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("auth.form.lastName")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t("auth.form.lastNamePlaceholder")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
-          <FormField
-            control={form.control}
-            name={"email" as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("auth.form.email")}</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={mode === "login" ? t("auth.form.emailPlaceholder") : t("auth.form.rpkEmailPlaceholder")}
-                    type="email"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+    <Card className="w-full max-w-md mx-auto rounded-md shadow-sm border border-gray-200 p-6">
+      <div className="space-y-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {mode === "register" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name={"firstName" as any}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("auth.form.firstName")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t("auth.form.firstNamePlaceholder")} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={"lastName" as any}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("auth.form.lastName")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t("auth.form.lastNamePlaceholder")} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
-          />
-          <FormField
-            control={form.control}
-            name={"password" as any}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("auth.form.password")}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t("auth.form.passwordPlaceholder")}
-                    type="password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {mode === "register" && (
             <FormField
               control={form.control}
-              name={"confirmPassword" as any}
+              name={"email" as any}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("auth.form.confirmPassword")}</FormLabel>
+                  <FormLabel>{t("auth.form.email")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t("auth.form.confirmPasswordPlaceholder")} type="password" {...field} />
+                    <Input
+                      placeholder={mode === "login" ? t("auth.form.emailPlaceholder") : t("auth.form.rpkEmailPlaceholder")}
+                      type="email"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          )}
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading && (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            <FormField
+              control={form.control}
+              name={"password" as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("auth.form.password")}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t("auth.form.passwordPlaceholder")}
+                      type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {mode === "register" && (
+              <FormField
+                control={form.control}
+                name={"confirmPassword" as any}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("auth.form.confirmPassword")}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={t("auth.form.confirmPasswordPlaceholder")} type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-            {mode === "login" ? t("auth.signIn") : t("auth.createAccount")}
-          </Button>
-        </form>
-      </Form>
-      <div className="flex justify-center pt-4">
-        <p className="text-sm text-muted-foreground">
-          {mode === "login" ? t("auth.form.dontHaveAccount") : t("auth.form.alreadyHaveAccount")}
-          <Link
-            href={mode === "login" ? "/sign-up" : "/sign-in"}
-            className="text-primary hover:underline mr-1"
-          >
-            {mode === "login" ? t("auth.signUp") : t("auth.signIn")}
-          </Link>
-        </p>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading && (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {mode === "login" ? t("auth.signIn") : t("auth.createAccount")}
+            </Button>
+          </form>
+        </Form>
+        <div className="flex justify-center pt-4">
+          <p className="text-sm text-muted-foreground">
+            {mode === "login" ? t("auth.form.dontHaveAccount") : t("auth.form.alreadyHaveAccount")}
+            <Link
+              href={mode === "login" ? "/sign-up" : "/sign-in"}
+              className="text-primary hover:underline mr-1"
+            >
+              {mode === "login" ? t("auth.signUp") : t("auth.signIn")}
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -2,8 +2,8 @@ import "./globals.css";
 import { I18nProvider } from "@/i18n";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ReactNode } from "react";
-import { PwaProvider } from "@/components/providers/pwa-provider";
 import type { Metadata } from 'next';
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: 'Qartal BDD Test Design',
@@ -26,12 +26,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl">
       <body>
-        <PwaProvider />
         <I18nProvider>
           <AuthProvider>
             {children}
           </AuthProvider>
         </I18nProvider>
+        <Toaster />
       </body>
     </html>
   );

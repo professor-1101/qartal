@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -22,7 +20,6 @@ export async function GET() {
       }
     });
   } catch (error) {
-    console.error("Health check error:", error);
     return NextResponse.json({
       status: "unhealthy",
       error: error instanceof Error ? error.message : "Unknown error",

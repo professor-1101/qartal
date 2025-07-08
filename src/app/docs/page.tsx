@@ -1,12 +1,10 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-    SearchIcon,
     Code,
     Zap,
     ArrowRight,
@@ -14,9 +12,10 @@ import {
     Plus,
     Edit,
     Share,
-  
     Info
 } from "lucide-react";
+
+
 
 export default function DocsPage() {
 
@@ -31,21 +30,11 @@ export default function DocsPage() {
                             <p className="text-muted-foreground mt-1 text-right">راهنمای کامل استفاده از پلتفرم مدیریت تست BDD</p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Badge variant="secondary">نسخه 1.0.0</Badge>
-                            <Button variant="outline" size="sm">گیت‌هاب</Button>
+                            <Badge variant="secondary">نسخه 0.2.0</Badge>
                         </div>
                     </div>
 
-                    {/* Search */}
-                    <div className="mt-8 max-w-md">
-                        <div className="relative">
-                            <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                            <Input
-                                placeholder="جستجو در مستندات..."
-                                className="pr-10 text-right"
-                            />
-                        </div>
-                    </div>
+                    {/* Remove the search bar section entirely */}
                 </div>
             </div>
 
@@ -132,14 +121,6 @@ export default function DocsPage() {
                                             pnpm build
                                         </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-medium mb-2 text-right">۶. فعال‌سازی و نصب Web App (PWA)</h3>
-                                        <ul className="list-disc pr-6 text-right text-sm text-muted-foreground space-y-1">
-                                            <li>در مرورگر کروم یا موبایل، سایت را باز کنید.</li>
-                                            <li>روی گزینه <b>Install App</b> یا <b>نصب برنامه</b> کلیک کنید.</li>
-                                            <li>آیکون Qartal به صفحه اصلی یا دسکتاپ شما اضافه می‌شود.</li>
-                                        </ul>
-                                    </div>
                                 </CardContent>
                             </Card>
                         </section>
@@ -185,38 +166,64 @@ export default function DocsPage() {
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold mb-2 text-right">نصب و راه‌اندازی</h2>
                                 <p className="text-muted-foreground text-right">
-                                    کارتال یک پلتفرم وب است و نیازی به نصب خاصی ندارد. فقط کافی است در سایت ثبت‌نام کنید و شروع کنید.
+                                    قارتال - پلتفرم ویرایش تست BDD<br />
+                                    پلتفرم مدرن و کاربردی برای طراحی و ویرایش تست‌های BDD (Behavior Driven Development) با پشتیبانی کامل از زبان فارسی و RTL.
                                 </p>
+                                <ul className="list-disc pr-6 text-right text-sm text-muted-foreground space-y-1 mt-4">
+                                    <li>✨ ویرایشگر Gherkin پیشرفته با پشتیبانی از RTL</li>
+                                    <li>📱 رابط کاربری مدرن و واکنش‌گرا</li>
+                                    <li>🔐 احراز هویت امن با NextAuth.js</li>
+                                    <li>📊 مدیریت پروژه‌ها و ویژگی‌ها</li>
+                                    <li>📤 خروجی HTML و ZIP</li>
+                                    <li>🌐 پشتیبانی کامل از زبان فارسی</li>
+                                    <li>📱 PWA (Progressive Web App)</li>
+                                </ul>
+                                <h3 className="font-bold mt-6 mb-2 text-right">پیش‌نیازها</h3>
+                                <ul className="list-disc pr-6 text-right text-sm text-muted-foreground space-y-1">
+                                    <li>Ubuntu 20.04 یا بالاتر</li>
+                                    <li>Node.js 18 یا بالاتر</li>
+                                    <li>PostgreSQL 12 یا بالاتر</li>
+                                    <li>Git</li>
+                                </ul>
                             </div>
-
                             <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg text-right">مراحل شروع</CardTitle>
-                                    <CardDescription className="text-right">
-                                        برای شروع کار با کارتال، این مراحل را دنبال کنید
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                                        <div>
-                                            <h4 className="font-medium mb-1">ثبت‌نام در کارتال</h4>
-                                            <p className="text-sm text-muted-foreground">به صفحه ثبت‌نام بروید و حساب کاربری خود را ایجاد کنید</p>
-                                        </div>
+                                <CardContent className="pt-6 space-y-6">
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۱. به‌روزرسانی سیستم و نصب ابزارهای ضروری</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`sudo apt update && sudo apt upgrade -y\nsudo apt install curl wget git build-essential -y`}</code></pre>
                                     </div>
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                                        <div>
-                                            <h4 className="font-medium mb-1">تأیید ایمیل</h4>
-                                            <p className="text-sm text-muted-foreground">ایمیل خود را تأیید کنید تا حساب کاربری فعال شود</p>
-                                        </div>
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۲. نصب Node.js 18</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -\nsudo apt-get install -y nodejs\nnode --version\nnpm --version`}</code></pre>
                                     </div>
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                                        <div>
-                                            <h4 className="font-medium mb-1">ورود به داشبورد</h4>
-                                            <p className="text-sm text-muted-foreground">وارد داشبورد شوید و اولین پروژه خود را ایجاد کنید</p>
-                                        </div>
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۳. نصب pnpm</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`npm install -g pnpm\npnpm --version`}</code></pre>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۴. نصب PostgreSQL</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`sudo apt install postgresql postgresql-contrib -y\nsudo systemctl start postgresql\nsudo systemctl enable postgresql\nsudo systemctl status postgresql`}</code></pre>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۵. تنظیم دیتابیس</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`sudo -u postgres psql\nCREATE USER qartal_user WITH PASSWORD 'your_secure_password';\nCREATE DATABASE qartal_db OWNER qartal_user;\nGRANT ALL PRIVILEGES ON DATABASE qartal_db TO qartal_user;\n\\q`}</code></pre>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۶. کلون کردن پروژه و تنظیم متغیرهای محیطی</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`git clone https://github.com/professor-1101/qartal.git\ncd qartal\ncp .env.example .env\nnano .env`}</code></pre>
+                                        <p className="text-xs text-muted-foreground text-right mt-2">محتوای فایل <b>.env</b> را مطابق راهنما تنظیم کنید.</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۷. نصب وابستگی‌ها و Prisma</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`pnpm install\npnpm add -D prisma\npnpm prisma generate\npnpm prisma db push\npnpm prisma studio`}</code></pre>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۸. ساخت پروژه برای تولید</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`pnpm build`}</code></pre>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium mb-2 text-right">۹. راه‌اندازی با PM2 و تنظیم Nginx و SSL (اختیاری)</h3>
+                                        <pre className="bg-muted rounded-lg p-4 font-mono text-sm text-left overflow-x-auto"><code>{`npm install -g pm2\npm2 start ecosystem.config.js\nsudo apt install nginx -y\nsudo apt install certbot python3-certbot-nginx -y\nsudo certbot --nginx -d your-domain.com`}</code></pre>
                                     </div>
                                 </CardContent>
                             </Card>
