@@ -51,6 +51,8 @@ export const authOptions: AuthOptions = {
     },
     pages: {
         signIn: "/sign-in",
+        signOut: "/",
+        error: "/sign-in",
     },
     callbacks: {
         async jwt({ token, user }: any) {
@@ -78,6 +80,14 @@ export const authOptions: AuthOptions = {
                 }
             }
             return session;
+        },
+        async redirect({ url, baseUrl }) {
+            // Handle relative URLs
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            // Handle absolute URLs on the same domain
+            else if (new URL(url).origin === baseUrl) return url;
+            // Default fallback
+            return baseUrl;
         },
     },
     secret: process.env.NEXTAUTH_SECRET || "fallback-secret",

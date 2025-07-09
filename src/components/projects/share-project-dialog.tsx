@@ -47,12 +47,38 @@ export function ShareProjectDialog({ open, onOpenChange, project}: ShareProjectD
 
     const handleCopyLink = async () => {
         try {
-            await navigator.clipboard.writeText(shareLink);
-            setCopied(true);
-            toast.success("لینک با موفقیت کپی شد!");
-            setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            toast.error("خطا در کپی کردن لینک");
+            // Try modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(shareLink);
+                setCopied(true);
+                toast.success("لینک با موفقیت کپی شد!");
+                setTimeout(() => setCopied(false), 2000);
+            } else {
+                // Fallback for older browsers or non-secure contexts
+                const textArea = document.createElement('textarea');
+                textArea.value = shareLink;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    setCopied(true);
+                    toast.success("لینک با موفقیت کپی شد!");
+                    setTimeout(() => setCopied(false), 2000);
+                } catch (err) {
+                    console.error('Fallback copy failed:', err);
+                    toast.error("خطا در کپی کردن لینک. لطفاً دستی کپی کنید.");
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+        } catch (error) {
+            console.error('Copy failed:', error);
+            toast.error("خطا در کپی کردن لینک. لطفاً دستی کپی کنید.");
         }
     };
 

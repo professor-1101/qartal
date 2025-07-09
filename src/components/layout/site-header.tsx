@@ -54,6 +54,7 @@ export function SiteHeader() {
 
   const breadcrumbItems = segments.map((seg, idx) => {
     let label = breadcrumbMap[seg] || seg;
+    let href = "/" + segments.slice(0, idx + 1).join("/");
 
     // Replace project ID with project name
     if (idx === 1 && segments[0] === 'projects' && projectName) {
@@ -65,9 +66,30 @@ export function SiteHeader() {
       label = featureName;
     }
 
+    // --- Breadcrumb logic for feature pages ---
+    // If on a feature view or edit page
+    if (
+      segments[0] === 'projects' &&
+      segments[2] === 'features' &&
+      (segments.length === 4 || (segments.length === 5 && segments[4] === 'edit'))
+    ) {
+      // idx: 2 => 'features' breadcrumb, should link to project page
+      if (idx === 2) {
+        href = `/${segments[0]}/${segments[1]}`;
+      }
+      // idx: 3 => feature breadcrumb
+      if (idx === 3) {
+        if (segments[4] === 'edit') {
+          href = `/${segments[0]}/${segments[1]}/${segments[2]}/${segments[3]}/edit`;
+        } else {
+          href = `/${segments[0]}/${segments[1]}/${segments[2]}/${segments[3]}`;
+        }
+      }
+    }
+
     return {
       label: label,
-      href: "/" + segments.slice(0, idx + 1).join("/"),
+      href: href,
       isLast: idx === segments.length - 1,
     };
   });

@@ -67,9 +67,40 @@ export function GherkinPreview({ feature }: { feature: Feature }) {
   const gherkinText = gherkinBusinessLogic.generateGherkinText(feature);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(gherkinText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(gherkinText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = gherkinText;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1200);
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          // Show error to user
+          alert('کپی کردن با خطا مواجه شد. لطفاً متن را دستی کپی کنید.');
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+    } catch (error) {
+      console.error('Copy failed:', error);
+      // Show error to user
+      alert('کپی کردن با خطا مواجه شد. لطفاً متن را دستی کپی کنید.');
+    }
   };
 
   const handleExport = () => {
