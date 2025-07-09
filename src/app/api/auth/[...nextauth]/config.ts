@@ -82,11 +82,11 @@ export const authOptions: AuthOptions = {
             return session;
         },
         async redirect({ url, baseUrl }) {
-            // Handle relative URLs
+            // If url is relative, join with baseUrl
             if (url.startsWith("/")) return `${baseUrl}${url}`;
-            // Handle absolute URLs on the same domain
-            else if (new URL(url).origin === baseUrl) return url;
-            // Default fallback
+            // If url starts with baseUrl, return as is
+            if (url.startsWith(baseUrl)) return url;
+            // Otherwise, fallback to baseUrl
             return baseUrl;
         },
     },

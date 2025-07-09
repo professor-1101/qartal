@@ -94,12 +94,7 @@ export function SidebarFooter() {
   const { data: session } = useSession();
 
   const handleSignOut = () => {
-    if (typeof window !== 'undefined') {
-      const callbackUrl = window.location.origin + '/';
-      signOut({ callbackUrl });
-    } else {
-      signOut({ callbackUrl: '/' });
-    }
+    signOut({ callbackUrl: '/' });
   };
 
   // Get user data from session
