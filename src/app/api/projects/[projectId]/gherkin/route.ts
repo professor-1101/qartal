@@ -118,15 +118,22 @@ export async function POST(
             );
         }
 
-        const gherkinFile = await prisma.gherkinFile.create({
-            data: {
-                name,
-                content,
-                projectId: projectId,
-            }
+        // Use transaction to create gherkin file and update project updatedAt
+        const result = await prisma.$transaction(async (tx) => {
+            const gherkinFile = await tx.gherkinFile.create({
+                data: {
+                    name,
+                    content,
+                    projectId: projectId,
+                }
+            });
+            await tx.project.update({
+                where: { id: projectId },
+                data: { updatedAt: new Date() }
+            });
+            return gherkinFile;
         });
-
-        return NextResponse.json(gherkinFile, { status: 201 });
+        return NextResponse.json(result, { status: 201 });
     } catch (error) {
         console.error("Error creating Gherkin file:", error);
         return NextResponse.json(

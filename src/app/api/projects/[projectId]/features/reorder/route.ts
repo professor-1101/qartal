@@ -23,10 +23,20 @@ export async function POST(request: NextRequest, { params }: { params: { project
         if (!Array.isArray(features)) {
             return NextResponse.json({ error: "Invalid features array" }, { status: 400 });
         }
-        // Update all features in parallel
-        await Promise.all(features.map((f: { id: string, order: number }) =>
-            prisma.feature.update({ where: { id: f.id, projectId }, data: { order: f.order } })
-        ));
+        // Use transaction to update features and project
+        await prisma.$transaction(async (tx) => {
+            // Update all features in parallel
+            await Promise.all(features.map((f: { id: string, order: number }) =>
+                tx.feature.update({ where: { id: f.id, projectId }, data: { order: f.order } })
+            ));
+            
+            // Update project's updatedAt
+            await tx.project.update({
+                where: { id: projectId },
+                data: { updatedAt: new Date() }
+            });
+        });
+        
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Error reordering features:", error);

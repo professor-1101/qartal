@@ -148,14 +148,21 @@ export default function ProjectsContent() {
         try {
             const date = new Date(dateString);
             if (isNaN(date.getTime())) {
+                console.log('Invalid date string:', dateString);
                 return 'تاریخ نامعتبر';
             }
+            console.log('Formatting date:', dateString, 'to:', date.toLocaleDateString("fa-IR", {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }));
             return date.toLocaleDateString("fa-IR", {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
         } catch (error) {
+            console.log('Error formatting date:', error);
             return 'تاریخ نامعتبر';
         }
     };
@@ -247,7 +254,7 @@ export default function ProjectsContent() {
                                     </div>
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{t("projects.lastUpdated")}</span>
-                                        <span>{formatDate(project.updatedAt || project.createdAt)}</span>
+                                        <span>{formatDate(project.updatedAt)}</span>
                                     </div>
                                     <Button className="w-full mt-2" onClick={() => router.push(`/projects/${project.id}`)}>
                                         {t("projects.viewProject")}

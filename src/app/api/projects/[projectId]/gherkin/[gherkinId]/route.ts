@@ -141,15 +141,22 @@ export async function PUT(
             );
         }
 
-        const updatedGherkinFile = await prisma.gherkinFile.update({
-            where: { id: gherkinId },
-            data: {
-                name,
-                content,
-            }
+        // Use transaction to update gherkin file and update project updatedAt
+        const result = await prisma.$transaction(async (tx) => {
+            const updatedGherkinFile = await tx.gherkinFile.update({
+                where: { id: gherkinId },
+                data: {
+                    name,
+                    content,
+                }
+            });
+            await tx.project.update({
+                where: { id: projectId },
+                data: { updatedAt: new Date() }
+            });
+            return updatedGherkinFile;
         });
-
-        return NextResponse.json(updatedGherkinFile);
+        return NextResponse.json(result);
     } catch (error) {
         console.error("Error updating Gherkin file:", error);
         return NextResponse.json(
@@ -215,10 +222,16 @@ export async function DELETE(
             );
         }
 
-        await prisma.gherkinFile.delete({
-            where: { id: gherkinId }
+        // Use transaction to delete gherkin file and update project updatedAt
+        await prisma.$transaction(async (tx) => {
+            await tx.gherkinFile.delete({
+                where: { id: gherkinId }
+            });
+            await tx.project.update({
+                where: { id: projectId },
+                data: { updatedAt: new Date() }
+            });
         });
-
         return NextResponse.json({ message: "Gherkin file deleted successfully" });
     } catch (error) {
         console.error("Error deleting Gherkin file:", error);

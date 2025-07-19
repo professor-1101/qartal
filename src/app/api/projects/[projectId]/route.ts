@@ -117,6 +117,7 @@ export async function PUT(
             data: {
                 name,
                 description,
+                updatedAt: new Date(), // Force update the timestamp
             },
             include: {
                 gherkinFiles: true,

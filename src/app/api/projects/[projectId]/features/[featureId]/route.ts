@@ -30,7 +30,17 @@ export async function DELETE(
       return NextResponse.json({ error: "Feature not found" }, { status: 404 });
     }
 
-    await prisma.feature.delete({ where: { id: featureId } });
+    // Use transaction to delete feature and update project
+    await prisma.$transaction(async (tx) => {
+        await tx.feature.delete({ where: { id: featureId } });
+        
+        // Update project's updatedAt
+        await tx.project.update({
+            where: { id: projectId },
+            data: { updatedAt: new Date() }
+        });
+    });
+    
     return NextResponse.json({ message: "Feature deleted successfully" });
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -165,30 +175,40 @@ export async function PUT(
       });
     }
 
-    // Update feature metadata
+        // Update feature metadata and project's updatedAt
     const rulesJson = data.rules ? JSON.stringify(data.rules) : undefined;
 
-    const updatedFeature = await prisma.feature.update({
-      where: { id: featureId, projectId },
-      data: {
-        name: data.name,
-        description: data.description,
-        tags: data.tags,
-        rulesJson,
-      },
-      include: {
-        scenarios: { include: { steps: true, examples: true } },
-        background: { include: { steps: true } },
-        project: { select: { id: true } },
-      },
+    const result = await prisma.$transaction(async (tx) => {
+        const updatedFeature = await tx.feature.update({
+            where: { id: featureId, projectId },
+            data: {
+                name: data.name,
+                description: data.description,
+                tags: data.tags,
+                rulesJson,
+            },
+            include: {
+                scenarios: { include: { steps: true, examples: true } },
+                background: { include: { steps: true } },
+                project: { select: { id: true } },
+            },
+        });
+
+        // Update project's updatedAt
+        await tx.project.update({
+            where: { id: projectId },
+            data: { updatedAt: new Date() }
+        });
+
+        return updatedFeature;
     });
 
-    let rules;
-    if (updatedFeature.rulesJson) {
-      try { rules = JSON.parse(updatedFeature.rulesJson as any); } catch (e) { }
+        let rules;
+    if (result.rulesJson) {
+        try { rules = JSON.parse(result.rulesJson as any); } catch (e) { }
     }
 
-    const responsePayload = { ...updatedFeature, rules };
+    const responsePayload = { ...result, rules };
     return NextResponse.json(responsePayload);
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

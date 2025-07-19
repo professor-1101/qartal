@@ -62,20 +62,31 @@ export async function POST(
         });
         const nextOrder = (maxOrderFeature?.order ?? 0) + 1;
 
-        const feature = await prisma.feature.create({
-            data: {
-                name,
-                description,
-                projectId: projectId,
-                order: nextOrder,
-            },
-            include: {
-                scenarios: true,
-                background: true,
-            }
+        // Use transaction to update both feature and project
+        const result = await prisma.$transaction(async (tx) => {
+            const feature = await tx.feature.create({
+                data: {
+                    name,
+                    description,
+                    projectId: projectId,
+                    order: nextOrder,
+                },
+                include: {
+                    scenarios: true,
+                    background: true,
+                }
+            });
+
+            // Update project's updatedAt
+            await tx.project.update({
+                where: { id: projectId },
+                data: { updatedAt: new Date() }
+            });
+
+            return feature;
         });
 
-        return NextResponse.json(feature, { status: 201 });
+        return NextResponse.json(result, { status: 201 });
     } catch (error) {
         console.error("Error creating feature:", error);
         return NextResponse.json(
