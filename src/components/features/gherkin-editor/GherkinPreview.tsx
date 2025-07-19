@@ -164,8 +164,14 @@ export function GherkinPreview({ feature }: { feature: Feature }) {
                     {step.dataTable && renderTable(step.dataTable.headers, step.dataTable.rows.map(r => r.values))}
                   </div>
                 ))}
-                            {scenario.type === 'scenario-outline' && scenario.examples && scenario.examples.rows.length > 0 && 
-              renderTable(scenario.examples.headers, scenario.examples.rows.map(r => r.values))}
+                            {scenario.type === 'scenario-outline' && scenario.examples && scenario.examples.rows.length > 0 && (
+                  <div className="pl-4 mt-2">
+                    <div className="mb-2">
+                      <span className="text-gray-800 font-bold">مثال:</span>
+                    </div>
+                    {renderTable(scenario.examples.headers, scenario.examples.rows.map(r => r.values))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -181,8 +187,14 @@ export function GherkinPreview({ feature }: { feature: Feature }) {
                 {step.dataTable && renderTable(step.dataTable.headers, step.dataTable.rows.map(r => r.values))}
               </div>
             ))}
-            {scenario.type === 'scenario-outline' && scenario.examples && scenario.examples.rows.length > 0 && 
-              renderTable(scenario.examples.headers, scenario.examples.rows.map(r => r.values))}
+            {scenario.type === 'scenario-outline' && scenario.examples && scenario.examples.rows.length > 0 && (
+              <div className="pl-4 mt-2">
+                <div className="mb-2">
+                  <span className="text-gray-800 font-bold">مثال:</span>
+                </div>
+                {renderTable(scenario.examples.headers, scenario.examples.rows.map(r => r.values))}
+              </div>
+            )}
           </div>
         ))}
       </div>

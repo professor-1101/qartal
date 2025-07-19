@@ -38,7 +38,7 @@ export function GherkinEditorHeader({ featureName, tags, dirty, onSave, onFeatur
   };
 
   return (
-    <nav className="sticky top-0 z-30 w-full bg-white/90 backdrop-blur border-b border-gray-200 flex items-center justify-between px-6 py-3 mb-6 shadow-sm rtl">
+    <nav className="sticky top-0 z-30 w-full bg-white border border-gray-200 rounded-lg flex items-center justify-between px-6 py-3 mb-6 rtl">
       <div className="flex items-center gap-3 min-w-0">
         {isEditing ? (
           <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export function GherkinEditorHeader({ featureName, tags, dirty, onSave, onFeatur
                   handleCancel();
                 }
               }}
-              className="text-lg font-bold max-w-xs md:max-w-md"
+              className="text-lg font-bold max-w-xs md:max-w-md border-0 shadow-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-0"
               autoFocus
             />
           </div>
@@ -71,7 +71,7 @@ export function GherkinEditorHeader({ featureName, tags, dirty, onSave, onFeatur
                 variant="ghost"
                 size="sm"
                 onClick={handleEdit}
-                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-6 w-6 p-0 opacity-0 hover:opacity-100 transition-opacity hover:bg-gray-100 rounded"
               >
                 <Edit className="h-3 w-3" />
               </Button>
