@@ -29,7 +29,16 @@ export default async function SharePage({
 }) {
     const { projectId } = await params;
 
-    const allProjects = await prisma.project.findMany({ include: { ...projectWithDetailsInclude, user: true } });
+    const allProjects = await prisma.project.findMany({ 
+        include: { 
+            ...projectWithDetailsInclude, 
+            user: true,
+            features: {
+                ...projectWithDetailsInclude.features,
+                orderBy: { order: 'asc' }
+            }
+        } 
+    });
 
     const project = allProjects.find((p: any) => {
         const shortCode = generateShortCode(p.id);
