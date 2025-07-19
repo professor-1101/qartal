@@ -230,7 +230,7 @@ export default function ProjectsContent() {
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{t("projects.features")}</span>
-                                        <Badge variant="secondary">{project._count.features}</Badge>
+                                        <Badge variant="secondary">{project._count.features || 0}</Badge>
                                     </div>
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{t("projects.lastUpdated")}</span>

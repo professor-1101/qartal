@@ -251,6 +251,7 @@ export const fa = {
         "lastUpdate": "آخرین بروزرسانی",
         "features": "ویژگی‌ها",
         "lastUpdated": "آخرین بروزرسانی",
+        "createdAt": "تاریخ ایجاد",
         "noDescription": "بدون توضیحات",
         "viewProject": "مشاهده پروژه",
         "create": "ایجاد",
