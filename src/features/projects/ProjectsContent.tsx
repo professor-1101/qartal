@@ -144,7 +144,9 @@ export default function ProjectsContent() {
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("fa-IR");
+        const date = new Date(dateString);
+        console.log('Formatting date:', dateString, 'to:', date.toLocaleDateString("fa-IR"));
+        return date.toLocaleDateString("fa-IR");
     };
 
     // Show loading while session is loading
