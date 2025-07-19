@@ -134,8 +134,8 @@ export default function ProjectsContent() {
                 throw new Error("Failed to update project");
             }
 
-            const updatedProject = await response.json();
-            setProjects(prev => prev.map(p => p.id === projectId ? updatedProject : p));
+            // Instead of using the response, fetch fresh data
+            await fetchProjects();
             setIsEditDialogOpen(false);
             setSelectedProject(null);
         } catch (err) {
