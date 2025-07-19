@@ -3,6 +3,7 @@ import { generateShortCode } from '@/lib/utils';
 import { SharedProjectView } from '@/components/projects/shared-view';
 import { prisma } from '@/lib/prisma';
 import { Feature, Project,  StepType } from '@/types';
+import { deepNormalizeFeature } from '@/lib/deepNormalize';
 
 const projectWithDetailsInclude = {
     features: {
@@ -64,42 +65,36 @@ export default async function SharePage({
     };
 
     // Transform features to match expected format
-    const transformedFeatures: Feature[] = project.features.map((feature: any) => ({
+    const transformedFeatures: Feature[] = project.features.map((feature: any) => deepNormalizeFeature({
         id: feature.id,
         name: feature.name,
         description: feature.description ?? undefined,
         tags: [],
         rules: feature.rulesJson ? JSON.parse(feature.rulesJson) : [],
-        scenarios: feature.scenarios.map((scenario: any) => {
-            // Robust extraction of examples
-            let examples;
-            if (scenario.examples && Array.isArray(scenario.examples) && scenario.examples.length > 0) {
-                const ex = scenario.examples[0];
-                examples = {
-                    id: ex.id,
-                    headers: Array.isArray(ex.header) ? ex.header : [],
-                    rows: Array.isArray(ex.body) ? ex.body.map((row: string[], idx: number) => ({
+        scenarios: feature.scenarios.map((scenario: any) => ({
+            id: scenario.id,
+            name: scenario.name,
+            description: scenario.description ?? undefined,
+            type: scenario.type as "scenario" | "scenario-outline",
+            tags: [],
+            steps: scenario.steps.map((step: any) => ({
+                id: step.id,
+                keyword: step.keyword as StepType,
+                text: step.text
+            })),
+            examples: scenario.examples && Array.isArray(scenario.examples) && scenario.examples.length > 0
+                ? {
+                    id: scenario.examples[0].id,
+                    headers: Array.isArray(scenario.examples[0].header) ? scenario.examples[0].header : [],
+                    rows: Array.isArray(scenario.examples[0].body) ? scenario.examples[0].body.map((row: string[], idx: number) => ({
                         id: `row-${idx}`,
                         values: row
                     })) : []
-                };
-            } else if (scenario.examples && typeof scenario.examples === 'object' && scenario.examples.headers && scenario.examples.rows) {
-                examples = scenario.examples;
-            }
-            return {
-                id: scenario.id,
-                name: scenario.name,
-                description: scenario.description ?? undefined,
-                type: scenario.type as "scenario" | "scenario-outline",
-                tags: [],
-                steps: scenario.steps.map((step: any) => ({
-                    id: step.id,
-                    keyword: step.keyword as StepType,
-                    text: step.text
-                })),
-                examples
-            };
-        }),
+                }
+                : (scenario.examples && typeof scenario.examples === 'object' && scenario.examples.headers && scenario.examples.rows
+                    ? scenario.examples
+                    : undefined)
+        })),
         background: feature.background ? {
             id: feature.background.id,
             steps: feature.background.steps.map((step: any) => ({

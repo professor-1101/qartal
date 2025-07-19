@@ -130,12 +130,12 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
             <div className="overflow-x-auto rounded-lg border">
                 <Table className="min-w-full">
                     <TableHeader className="bg-gray-50">
-                        <TableRow>
+                        <TableRow className="border-b border-gray-300">
                             {/* Column headers */}
                             {safeHeaders.map((header, idx) => (
                                 <TableHead 
                                     key={idx} 
-                                    className="relative group p-0 border-r"
+                                    className="relative group p-0 border-r border-b border-gray-300"
                                     onMouseEnter={() => setActiveColumn(idx)}
                                     onMouseLeave={() => setActiveColumn(null)}
                                 >
@@ -230,7 +230,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                             ))}
                             
                             {/* Row actions header */}
-                            <TableHead className="w-12 bg-gray-50 p-0">
+                            <TableHead className="w-12 bg-gray-50 p-0 border-b border-gray-300">
                                 <div className="flex items-center justify-center h-12 text-gray-500">
                                     اقدامات
                                 </div>
@@ -243,7 +243,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                             <TableRow>
                                 <TableCell 
                                     colSpan={safeHeaders.length + 1} 
-                                    className="text-center text-gray-400 py-8"
+                                    className="text-center text-gray-400 py-8 border-b border-gray-200"
                                 >
                                     <div className="flex flex-col items-center justify-center gap-2">
                                         <div className="bg-gray-100 p-3 rounded-full">
@@ -265,7 +265,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                             safeRows.map((row, rowIdx) => (
                                 <TableRow 
                                     key={row.id} 
-                                    className="hover:bg-gray-50"
+                                    className="hover:bg-gray-50 border-b border-gray-200"
                                     onMouseEnter={() => setActiveRow(rowIdx)}
                                     onMouseLeave={() => setActiveRow(null)}
                                 >
