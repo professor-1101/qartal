@@ -246,7 +246,7 @@ export function SharedProjectView({ project, features = [] }: SharedProjectViewP
     return (
         <div className="min-h-screen bg-muted/20">
             {/* Fixed Header */}
-            <header className="border-b bg-background">
+            <header className="border-b ">
                 <div className="container mx-auto px-4 py-4">
                     <Card className="shadow-sm">
                         <CardContent className="p-4">

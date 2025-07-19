@@ -68,6 +68,7 @@ export default function ProjectsContent() {
             }
 
             const data = await response.json();
+            console.log('Fetched projects:', data);
             setProjects(data);
         } catch (err) {
             setError("خطا در بارگذاری پروژه‌ها");
@@ -246,7 +247,7 @@ export default function ProjectsContent() {
                                     </div>
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{t("projects.lastUpdated")}</span>
-                                        <span>{formatDate(project.updatedAt)}</span>
+                                        <span>{formatDate(project.updatedAt || project.createdAt)}</span>
                                     </div>
                                     <Button className="w-full mt-2" onClick={() => router.push(`/projects/${project.id}`)}>
                                         {t("projects.viewProject")}

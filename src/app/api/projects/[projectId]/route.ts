@@ -117,7 +117,6 @@ export async function PUT(
             data: {
                 name,
                 description,
-                updatedAt: new Date(),
             },
             include: {
                 gherkinFiles: true,
