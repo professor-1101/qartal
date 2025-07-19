@@ -267,7 +267,7 @@ export default function ProjectsContent() {
                             <Button variant="outline" size="sm" asChild>
                                 <span>
                                     <Upload className="w-4 h-4 ml-2" />
-                                    ایمپورت JSON
+                                    ایمپورت پروژه
                                 </span>
                             </Button>
                         </label>

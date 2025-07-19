@@ -250,6 +250,7 @@ export const fa = {
         "teamSize": "اندازه تیم",
         "lastUpdate": "آخرین بروزرسانی",
         "features": "ویژگی‌ها",
+        "steps":"مراحل",
         "lastUpdated": "آخرین بروزرسانی",
         "createdAt": "تاریخ ایجاد",
         "noDescription": "بدون توضیحات",
