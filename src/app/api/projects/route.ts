@@ -30,6 +30,16 @@ export async function GET(_request: NextRequest) {
     const projects = await prisma.project.findMany({
       where: { userId: user.id },
       include: {
+        features: {
+          include: {
+            scenarios: {
+              include: { steps: true }
+            },
+            background: {
+              include: { steps: true }
+            }
+          }
+        },
         gherkinFiles: true,
         _count: {
           select: {

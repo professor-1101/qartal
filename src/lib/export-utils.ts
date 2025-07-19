@@ -1,6 +1,8 @@
 import { prisma } from './prisma';
-import type { Project, Feature } from '@/types';
+import type { Project } from '@/types';
 import type { ProjectWithFeatures } from '@/types/entities';
+import { Feature, Scenario, Rule, Step } from '@/types/gherkin';
+import { deepNormalizeProject, deepNormalizeFeature } from './deepNormalize';
 
 // تابع مشترک برای ساخت HTML زیبا و مینیمال
 export const createBeautifulHTML = (project: import('@/types/entities').ProjectWithFeatures, features: import('@/types/gherkin').Feature[]) => {
@@ -283,7 +285,7 @@ export const createBeautifulHTML = (project: import('@/types/entities').ProjectW
                         ${feature.background && feature.background.steps && feature.background.steps.length > 0 ? `
                             <div class="background">
                                 <h3>پس‌زمینه</h3>
-                                ${feature.background.steps.map(step => `
+                                ${(Array.isArray(feature.background.steps) ? feature.background.steps : []).map(step => `
                                     <div class="step">
                                         <span class="keyword">${step.keyword}</span> ${step.text}
                                     </div>
@@ -291,32 +293,32 @@ export const createBeautifulHTML = (project: import('@/types/entities').ProjectW
                             </div>
                         ` : ''}
                         
-                        ${feature.rules && feature.rules.length > 0 ? feature.rules.map(rule => `
+                        ${(Array.isArray(feature.rules) ? feature.rules : []).map(rule => `
                             <div class="rule">
                                 <h3>قانون: ${rule.name}</h3>
                                 ${rule.description ? `<p>${rule.description}</p>` : ''}
-                                ${rule.scenarios.map(scenario => `
+                                ${(Array.isArray(rule.scenarios) ? rule.scenarios : []).map(scenario => `
                                     <div class="scenario">
                                         <h3>سناریو: ${scenario.name}</h3>
                                         ${scenario.description ? `<p>${scenario.description}</p>` : ''}
-                                        ${scenario.steps.map(step => `
+                                        ${(Array.isArray(scenario.steps) ? scenario.steps : []).map(step => `
                                             <div class="step">
                                                 <span class="keyword">${step.keyword}</span> ${step.text}
                                             </div>
                                         `).join('')}
-                                        ${scenario.examples && scenario.examples.headers.length > 0 ? `
+                                        ${(scenario.examples && Array.isArray(scenario.examples.headers) && scenario.examples.headers.length > 0) ? `
                                             <div class="examples">
                                                 <h4>مثال‌ها:</h4>
                                                 <table>
                                                     <thead>
                                                         <tr>
-                                                            ${scenario.examples.headers.map(header => `<th>${header}</th>`).join('')}
+                                                            ${(Array.isArray(scenario.examples.headers) ? scenario.examples.headers : []).map(header => `<th>${header}</th>`).join('')}
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        ${scenario.examples.rows.map(row => `
+                                                        ${(Array.isArray(scenario.examples.rows) ? scenario.examples.rows : []).map(row => `
                                                             <tr>
-                                                                ${row.values.map(value => `<td>${value}</td>`).join('')}
+                                                                ${(Array.isArray(row.values) ? row.values : []).map(value => `<td>${value}</td>`).join('')}
                                                             </tr>
                                                         `).join('')}
                                                     </tbody>
@@ -326,30 +328,30 @@ export const createBeautifulHTML = (project: import('@/types/entities').ProjectW
                                     </div>
                                 `).join('')}
                             </div>
-                        `).join('') : ''}
+                        `).join('')}
                         
-                        ${feature.scenarios && feature.scenarios.length > 0 ? feature.scenarios.map(scenario => `
+                        ${(Array.isArray(feature.scenarios) ? feature.scenarios : []).map(scenario => `
                             <div class="scenario">
                                 <h3>سناریو: ${scenario.name}</h3>
                                 ${scenario.description ? `<p>${scenario.description}</p>` : ''}
-                                ${scenario.steps.map(step => `
+                                ${(Array.isArray(scenario.steps) ? scenario.steps : []).map(step => `
                                     <div class="step">
                                         <span class="keyword">${step.keyword}</span> ${step.text}
                                     </div>
                                 `).join('')}
-                                ${scenario.examples && scenario.examples.headers && scenario.examples.headers.length > 0 ? `
+                                ${(scenario.examples && Array.isArray(scenario.examples.headers) && scenario.examples.headers.length > 0) ? `
                                     <div class="examples">
                                         <h4>مثال‌ها:</h4>
                                         <table>
                                             <thead>
                                                 <tr>
-                                                    ${scenario.examples.headers.map(header => `<th>${header}</th>`).join('')}
+                                                    ${(Array.isArray(scenario.examples.headers) ? scenario.examples.headers : []).map(header => `<th>${header}</th>`).join('')}
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                ${scenario.examples.rows && scenario.examples.rows.map(row => `
+                                                ${(Array.isArray(scenario.examples.rows) ? scenario.examples.rows : []).map(row => `
                                                     <tr>
-                                                        ${row.values && row.values.map(value => `<td>${value}</td>`).join('')}
+                                                        ${(Array.isArray(row.values) ? row.values : []).map(value => `<td>${value}</td>`).join('')}
                                                     </tr>
                                                 `).join('')}
                                             </tbody>
@@ -357,7 +359,7 @@ export const createBeautifulHTML = (project: import('@/types/entities').ProjectW
                                     </div>
                                 ` : ''}
                             </div>
-                        `).join('') : ''}
+                        `).join('')}
                     </div>
                 </div>
             `).join('')}
@@ -382,46 +384,101 @@ export const createBeautifulHTMLForClient = (project: Project, features: Feature
   return createBeautifulHTML(projectWithFeatures, features);
 };
 
+// Utility to deeply normalize all arrays in a feature
+export function normalizeFeatureDeep(feature: Feature): Feature {
+  feature.tags = Array.isArray(feature.tags) ? feature.tags : [];
+  if (feature.background) {
+    feature.background.steps = Array.isArray(feature.background.steps) ? feature.background.steps : [];
+  }
+  feature.scenarios = Array.isArray(feature.scenarios) ? feature.scenarios : [];
+  feature.scenarios.forEach((scenario: Scenario) => {
+    scenario.tags = Array.isArray(scenario.tags) ? scenario.tags : [];
+    scenario.steps = Array.isArray(scenario.steps) ? scenario.steps : [];
+    if (scenario.examples) {
+      scenario.examples.headers = Array.isArray(scenario.examples.headers) ? scenario.examples.headers : [];
+      scenario.examples.rows = Array.isArray(scenario.examples.rows) ? scenario.examples.rows : [];
+      scenario.examples.rows.forEach(row => {
+        row.values = Array.isArray(row.values) ? row.values : [];
+      });
+    }
+  });
+  if (feature.rules && Array.isArray(feature.rules)) {
+    feature.rules.forEach((rule: Rule) => {
+      rule.tags = Array.isArray(rule.tags) ? rule.tags : [];
+      rule.scenarios = Array.isArray(rule.scenarios) ? rule.scenarios : [];
+      rule.scenarios.forEach((scenario: Scenario) => {
+        scenario.tags = Array.isArray(scenario.tags) ? scenario.tags : [];
+        scenario.steps = Array.isArray(scenario.steps) ? scenario.steps : [];
+        if (scenario.examples) {
+          scenario.examples.headers = Array.isArray(scenario.examples.headers) ? scenario.examples.headers : [];
+          scenario.examples.rows = Array.isArray(scenario.examples.rows) ? scenario.examples.rows : [];
+          scenario.examples.rows.forEach(row => {
+            row.values = Array.isArray(row.values) ? row.values : [];
+          });
+        }
+      });
+    });
+  }
+  return feature;
+}
+
 // تابع برای ساخت Gherkin از Feature
 export const createGherkinFromFeature = (feature: Feature): string => {
+    const safeFeature = normalizeFeatureDeep({ ...feature });
     let gherkin = '';
     gherkin += `# language: fa\n`;
     gherkin += `@feature\n`;
-    gherkin += `Feature: ${feature.name}\n`;
-    if (feature.description) gherkin += `  ${feature.description}\n`;
+    gherkin += `Feature: ${safeFeature.name}\n`;
+    if (safeFeature.description) gherkin += `  ${safeFeature.description}\n`;
     gherkin += '\n';
     
-    if (feature.background && feature.background.steps && feature.background.steps.length > 0) {
+    if (safeFeature.background && safeFeature.background.steps && safeFeature.background.steps.length > 0) {
         gherkin += `  Background:\n`;
-        feature.background.steps.forEach(step => {
+        safeFeature.background.steps.forEach((step: Step) => {
             gherkin += `    ${step.keyword} ${step.text}\n`;
         });
         gherkin += '\n';
     }
     
-    if (feature.rules && feature.rules.length > 0) {
-        feature.rules.forEach(rule => {
+    if (safeFeature.rules && safeFeature.rules.length > 0) {
+        safeFeature.rules.forEach((rule: Rule) => {
             gherkin += `  Rule: ${rule.name}\n`;
             if (rule.description) gherkin += `    ${rule.description}\n`;
             gherkin += '\n';
-            rule.scenarios.forEach(scenario => {
+            rule.scenarios.forEach((scenario: Scenario) => {
                 gherkin += `    Scenario: ${scenario.name}\n`;
                 if (scenario.description) gherkin += `      ${scenario.description}\n`;
-                scenario.steps.forEach(step => {
+                scenario.steps.forEach((step: Step) => {
                     gherkin += `      ${step.keyword} ${step.text}\n`;
                 });
+                // Add examples for scenario outlines
+                if (scenario.type === 'scenario-outline' && scenario.examples && Array.isArray(scenario.examples.headers) && scenario.examples.headers.length > 0) {
+                    gherkin += `\n      Examples:\n`;
+                    gherkin += `        | ${(Array.isArray(scenario.examples.headers) ? scenario.examples.headers : []).join(' | ')} |\n`;
+                    (Array.isArray(scenario.examples.rows) ? scenario.examples.rows : []).forEach(row => {
+                        gherkin += `        | ${(Array.isArray(row.values) ? row.values : []).join(' | ')} |\n`;
+                    });
+                }
                 gherkin += '\n';
             });
         });
     }
     
-    if (feature.scenarios && feature.scenarios.length > 0) {
-        feature.scenarios.forEach(scenario => {
+    if (safeFeature.scenarios && safeFeature.scenarios.length > 0) {
+        safeFeature.scenarios.forEach((scenario: Scenario) => {
             gherkin += `  Scenario: ${scenario.name}\n`;
             if (scenario.description) gherkin += `    ${scenario.description}\n`;
-            scenario.steps.forEach(step => {
+            scenario.steps.forEach((step: Step) => {
                 gherkin += `    ${step.keyword} ${step.text}\n`;
             });
+            // Add examples for scenario outlines
+            if (scenario.type === 'scenario-outline' && scenario.examples && Array.isArray(scenario.examples.headers) && scenario.examples.headers.length > 0) {
+                gherkin += `\n    Examples:\n`;
+                gherkin += `      | ${(Array.isArray(scenario.examples.headers) ? scenario.examples.headers : []).join(' | ')} |\n`;
+                (Array.isArray(scenario.examples.rows) ? scenario.examples.rows : []).forEach(row => {
+                    gherkin += `      | ${(Array.isArray(row.values) ? row.values : []).join(' | ')} |\n`;
+                });
+            }
             gherkin += '\n';
         });
     }
@@ -490,4 +547,13 @@ export async function getProjectWithFeatures(projectId: string): Promise<Project
     authorName: [project.user?.firstName, project.user?.lastName].filter(Boolean).join(' ') || '',
     features: features,
   };
+} 
+
+// هنگام اکسپورت پروژه:
+export function exportProjectSafe(project: any) {
+  return JSON.stringify(deepNormalizeProject(project), null, 2);
+}
+// هنگام اکسپورت feature:
+export function exportFeatureSafe(feature: any) {
+  return JSON.stringify(deepNormalizeFeature(feature), null, 2);
 } 

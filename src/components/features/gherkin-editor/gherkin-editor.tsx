@@ -11,6 +11,7 @@ import { GherkinEditorScenarios } from "./GherkinEditorScenarios";
 import { GherkinEditorRuleModal } from "./GherkinEditorRuleModal";
 import { useGherkinEditorLogic } from "./useGherkinEditorLogic";
 import { GherkinPreview } from "./GherkinPreview";
+import { deepNormalizeFeature } from '@/lib/deepNormalize';
 
 interface GherkinEditorProps {
     feature: Feature;
@@ -18,7 +19,8 @@ interface GherkinEditorProps {
 }
 
 export function GherkinEditor({ feature: initialFeature, onFeatureChange }: GherkinEditorProps) {
-    const logic = useGherkinEditorLogic(initialFeature);
+    const normalizedFeature = deepNormalizeFeature(initialFeature);
+    const logic = useGherkinEditorLogic(normalizedFeature);
 
     return (
         <TooltipProvider delayDuration={300}>

@@ -3,6 +3,7 @@ import { Feature, Scenario, Step, Examples, Background } from "@/types/gherkin";
 import { gherkinBusinessLogic } from "@/lib/gherkin-business-logic";
 import isEqual from 'lodash/isEqual';
 import { nanoid } from 'nanoid';
+import { deepNormalizeFeature } from '@/lib/deepNormalize';
 
 // --- BEGIN: Dirty state debug helpers ---
 function normalizeFeature(feature: Feature): any {
@@ -102,7 +103,9 @@ const defaultFeature: Feature = {
 };
 
 export function useGherkinEditorLogic(initialFeature: Feature) {
-  const [feature, setFeature] = useState<Feature>(initialFeature || defaultFeature);
+  // نرمالایز عمیق داده اولیه
+  const normalizedInitial = deepNormalizeFeature(initialFeature);
+  const [feature, setFeature] = useState<Feature>(normalizedInitial || defaultFeature);
   const [dirty, setDirty] = useState(false);
   const [showAddScenarioMenu, setShowAddScenarioMenu] = useState(false);
   const addScenarioButtonRef = useRef<HTMLButtonElement>(null);
@@ -111,13 +114,7 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
 
   useEffect(() => {
     if (initialFeature) {
-      setFeature({
-        ...defaultFeature,
-        ...initialFeature,
-        scenarios: initialFeature?.scenarios || [],
-        rules: initialFeature?.rules || [],
-        tags: initialFeature?.tags || [],
-      });
+      setFeature(deepNormalizeFeature({ ...defaultFeature, ...initialFeature }));
       setDirty(false);
     }
     // Remove defaultFeature from dependencies

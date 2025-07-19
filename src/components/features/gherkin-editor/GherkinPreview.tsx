@@ -37,11 +37,15 @@ function renderTable(headers: string[], rows: string[][]) {
   const colWidths = Array(colCount).fill(0);
   
   // Calculate max width for each column
-  table.forEach(row => {
-    row.forEach((cell, i) => {
-      colWidths[i] = Math.max(colWidths[i], getStringWidth(cell));
+  if (Array.isArray(table)) {
+    table.forEach(row => {
+      if (Array.isArray(row)) {
+        row.forEach((cell, i) => {
+          colWidths[i] = Math.max(colWidths[i], getStringWidth(cell));
+        });
+      }
     });
-  });
+  }
   
   return (
     <pre className="bg-white border border-gray-200 rounded p-3 my-2 overflow-x-auto text-xs" style={{ 

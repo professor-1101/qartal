@@ -12,8 +12,9 @@ import { DeleteProjectDialog } from "@/components/projects/delete-project-dialog
 import { EditProjectDialog } from "@/components/projects/edit-project-dialog";
 import { ShareProjectDialog } from "@/components/projects/share-project-dialog";
 import { useI18n } from "@/i18n";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, Upload } from "lucide-react";
 import DashboardPageHeader from "@/components/layout/DashboardPageHeader";
+import { toast } from "sonner";
 
 interface Project {
     id: string;
@@ -26,6 +27,7 @@ interface Project {
         gherkinFiles: number;
         features: number;
     };
+    features?: any[]; // Allow features for imported projects
 }
 
 export default function ProjectsContent() {
@@ -167,6 +169,55 @@ export default function ProjectsContent() {
         }
     };
 
+    // --- Import JSON Handler ---
+    const handleImportJSON = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const imported = JSON.parse(text);
+            let importedProjects = [];
+            if (Array.isArray(imported)) {
+                importedProjects = imported;
+            } else {
+                importedProjects = [imported];
+            }
+            // Validate and normalize all imported projects
+            for (const proj of importedProjects) {
+                if (!proj) {
+                    toast.error('ساختار فایل JSON معتبر نیست.');
+                    return;
+                }
+                if (!Array.isArray(proj.features)) {
+                    proj.features = [];
+                }
+            }
+            // Send each project to the import API
+            let allSuccess = true;
+            for (const proj of importedProjects) {
+                const res = await fetch('/api/projects/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(proj)
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    toast.error(`ایمپورت پروژه ${proj.name || proj.id} شکست خورد: ${err.error || 'خطای سرور'}`);
+                    console.error('Import error:', err);
+                    allSuccess = false;
+                }
+            }
+            await fetchProjects(); // Refetch from server
+            if (allSuccess) {
+                toast.success('پروژه(ها) با موفقیت ایمپورت شد!');
+            } else {
+                toast.error('برخی پروژه‌ها ایمپورت نشدند.');
+            }
+        } catch (e) {
+            toast.error('خطا در ایمپورت فایل JSON');
+        }
+    };
+
     // Show loading while session is loading
     if (status === "loading" || loading) {
         return (
@@ -199,15 +250,50 @@ export default function ProjectsContent() {
                 title={t("projects.title")}
                 description={t("projects.description")}
                 actions={
-                    <Button onClick={() => setIsCreateDialogOpen(true)}>
-                        <Icons.plus className="mr-2 h-4 w-4" />
-                        {t("projects.createNew")}
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button onClick={() => setIsCreateDialogOpen(true)}>
+                            <Icons.plus className="mr-2 h-4 w-4" />
+                            {t("projects.createNew")}
+                        </Button>
+                        {/* Import JSON Button */}
+                        <label htmlFor="import-json" className="inline-flex items-center cursor-pointer">
+                            <input
+                                id="import-json"
+                                type="file"
+                                accept="application/json"
+                                className="hidden"
+                                onChange={handleImportJSON}
+                            />
+                            <Button variant="outline" size="sm" asChild>
+                                <span>
+                                    <Upload className="w-4 h-4 ml-2" />
+                                    ایمپورت JSON
+                                </span>
+                            </Button>
+                        </label>
+                    </div>
                 }
             />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {projects.map((project) => {
+                    const features = Array.isArray(project.features) ? project.features : [];
+                    // Count features
+                    const featureCount = features.length || project._count?.features || 0;
+                    // Count steps (background + all scenario steps)
+                    let stepCount = 0;
+                    for (const feature of features) {
+                        if (feature.background && Array.isArray(feature.background.steps)) {
+                            stepCount += feature.background.steps.length;
+                        }
+                        if (Array.isArray(feature.scenarios)) {
+                            for (const scenario of feature.scenarios) {
+                                if (Array.isArray(scenario.steps)) {
+                                    stepCount += scenario.steps.length;
+                                }
+                            }
+                        }
+                    }
                     return (
                         <Card key={project.id} className="group bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-lg transition-shadow flex flex-col justify-between min-h-[260px] p-4">
                             <CardHeader className="pb-2 px-0">
@@ -250,7 +336,11 @@ export default function ProjectsContent() {
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{t("projects.features")}</span>
-                                        <Badge variant="secondary">{project._count.features || 0}</Badge>
+                                        <Badge variant="secondary">{featureCount}</Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                        <span>{t("projects.steps")}</span>
+                                        <Badge variant="secondary">{stepCount}</Badge>
                                     </div>
                                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                                         <span>{t("projects.lastUpdated")}</span>

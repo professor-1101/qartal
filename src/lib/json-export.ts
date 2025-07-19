@@ -109,36 +109,39 @@ export class JSONExportService {
     }
 
     // Add scenarios
-    feature.scenarios.forEach(scenario => {
-      const scenarioData: any = {
-        scenario: {
-          name: scenario.name,
-          description: scenario.description ? scenario.description : '',
-          tags: scenario.tags?.map(tag => ({ name: tag })) || [],
-          steps: scenario.steps.map(step => ({
-            keyword: step.keyword,
-            text: step.text,
-            location: { line: 1, column: 1 }
-          }))
+    if (Array.isArray(feature.scenarios)) {
+      feature.scenarios.forEach(scenario => {
+        const scenarioData: any = {
+          scenario: {
+            name: scenario.name,
+            description: scenario.description ? scenario.description : '',
+            tags: scenario.tags?.map(tag => ({ name: tag })) || [],
+            steps: scenario.steps.map(step => ({
+              keyword: step.keyword,
+              text: step.text,
+              location: { line: 1, column: 1 }
+            }))
+          }
+        };
+
+        // Add examples for scenario outlines
+        if (scenario.type === 'scenario-outline' && scenario.examples) {
+          scenarioData.scenario.examples = [{
+            name: '',
+            tags: [],
+            line: 1,
+            tableHeader: {
+              cells: scenario.examples.headers.map(header => ({ value: header }))
+            },
+            tableBody: scenario.examples.rows.map(row => ({
+              cells: row.values.map(value => ({ value }))
+            }))
+          }];
         }
-      };
 
-      // Add examples for scenario outlines
-      if (scenario.type === 'scenario-outline' && scenario.examples) {
-        scenarioData.scenario.examples = [{
-          name: '',
-          tags: [],
-          tableHeader: {
-            cells: scenario.examples.headers.map(header => ({ value: header }))
-          },
-          tableBody: scenario.examples.rows.map(row => ({
-            cells: row.values.map(value => ({ value }))
-          }))
-        }];
-      }
-
-      gherkinData.gherkinDocument.feature.children.push(scenarioData);
-    });
+        gherkinData.gherkinDocument.feature.children.push(scenarioData);
+      });
+    }
 
     return opts.prettyPrint 
       ? JSON.stringify(gherkinData, null, 2)
@@ -180,40 +183,42 @@ export class JSONExportService {
     }
 
     // Add scenarios
-    feature.scenarios.forEach((scenario, index) => {
-      const scenarioData: any = {
-        id: scenario.id || `scenario-${index + 1}`,
-        name: scenario.name,
-        description: scenario.description || '',
-        keyword: scenario.type === 'scenario-outline' ? 'Scenario Outline' : 'Scenario',
-        line: 1,
-        type: scenario.type === 'scenario-outline' ? 'scenario_outline' : 'scenario',
-        tags: scenario.tags?.map(tag => ({ name: tag, line: 1 })) || [],
-        steps: scenario.steps.map(step => ({
-          keyword: step.keyword,
-          name: step.text,
+    if (Array.isArray(feature.scenarios)) {
+      feature.scenarios.forEach((scenario, index) => {
+        const scenarioData: any = {
+          id: scenario.id || `scenario-${index + 1}`,
+          name: scenario.name,
+          description: scenario.description || '',
+          keyword: scenario.type === 'scenario-outline' ? 'Scenario Outline' : 'Scenario',
           line: 1,
-          result: { status: 'passed', duration: 0 }
-        }))
-      };
-
-      // Add examples for scenario outlines
-      if (scenario.type === 'scenario-outline' && scenario.examples) {
-        scenarioData.examples = [{
-          name: '',
-          tags: [],
-          line: 1,
-          tableHeader: {
-            cells: scenario.examples.headers.map(header => ({ value: header }))
-          },
-          tableBody: scenario.examples.rows.map(row => ({
-            cells: row.values.map(value => ({ value }))
+          type: scenario.type === 'scenario-outline' ? 'scenario_outline' : 'scenario',
+          tags: scenario.tags?.map(tag => ({ name: tag, line: 1 })) || [],
+          steps: scenario.steps.map(step => ({
+            keyword: step.keyword,
+            name: step.text,
+            line: 1,
+            result: { status: 'passed', duration: 0 }
           }))
-        }];
-      }
+        };
 
-      cucumberData[0].elements.push(scenarioData);
-    });
+        // Add examples for scenario outlines
+        if (scenario.type === 'scenario-outline' && scenario.examples) {
+          scenarioData.examples = [{
+            name: '',
+            tags: [],
+            line: 1,
+            tableHeader: {
+              cells: scenario.examples.headers.map(header => ({ value: header }))
+            },
+            tableBody: scenario.examples.rows.map(row => ({
+              cells: row.values.map(value => ({ value }))
+            }))
+          }];
+        }
+
+        cucumberData[0].elements.push(scenarioData);
+      });
+    }
 
     return opts.prettyPrint 
       ? JSON.stringify(cucumberData, null, 2)

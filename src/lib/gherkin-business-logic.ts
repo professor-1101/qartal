@@ -370,14 +370,14 @@ export class GherkinBusinessLogicService implements GherkinBusinessLogic {
     }
 
     // Feature tags
-    if (feature.tags && feature.tags.length > 0) {
+    if (Array.isArray(feature.tags) && feature.tags.length > 0) {
       text += `${feature.tags.join(' ')}\n`;
     }
 
     text += '\n';
 
     // Background
-    if (feature.background && feature.background.steps.length > 0) {
+    if (feature.background && Array.isArray(feature.background.steps) && feature.background.steps.length > 0) {
       text += `${background}:\n`;
       feature.background.steps.forEach(step => {
         let keyword = { فرض: given, وقتی: when, آنگاه: then, و: and, اما: but }[step.keyword] || step.keyword;
@@ -385,12 +385,12 @@ export class GherkinBusinessLogicService implements GherkinBusinessLogic {
 
         // SAFE CHECK: Add data table if present and valid
         if (step.dataTable) {
-          if (step.dataTable.headers?.length) {
+          if (Array.isArray(step.dataTable.headers) && step.dataTable.headers.length) {
             text += `    | ${step.dataTable.headers.join(' | ')} |\n`;
           }
-          if (step.dataTable.rows) {
+          if (Array.isArray(step.dataTable.rows)) {
             step.dataTable.rows.forEach(row => {
-              text += `    | ${row.values?.join(' | ') || ''} |\n`;
+              text += `    | ${(Array.isArray(row.values) ? row.values : []).join(' | ')} |\n`;
             });
           }
         }
@@ -409,7 +409,7 @@ export class GherkinBusinessLogicService implements GherkinBusinessLogic {
     if (Array.isArray(feature.rules)) {
       feature.rules.forEach(ruleObj => {
         // Rule tags
-        if (ruleObj.tags && ruleObj.tags.length > 0) {
+        if (Array.isArray(ruleObj.tags) && ruleObj.tags.length > 0) {
           text += `  ${ruleObj.tags.join(' ')}\n`;
         }
 
@@ -423,118 +423,126 @@ export class GherkinBusinessLogicService implements GherkinBusinessLogic {
         }
 
         // Scenarios in rule
-        ruleObj.scenarios.forEach(scenarioObj => {
-          // Scenario tags
-          if (scenarioObj.tags && scenarioObj.tags.length > 0) {
-            text += `    ${scenarioObj.tags.join(' ')}\n`;
-          }
+        if (Array.isArray(ruleObj.scenarios)) {
+          ruleObj.scenarios.forEach(scenarioObj => {
+            // Scenario tags
+            if (Array.isArray(scenarioObj.tags) && scenarioObj.tags.length > 0) {
+              text += `    ${scenarioObj.tags.join(' ')}\n`;
+            }
 
-          // Scenario header
-          text += `    ${scenarioObj.type === 'scenario-outline' ? scenarioOutline : scenario}: ${scenarioObj.name}\n`;
+            // Scenario header
+            text += `    ${scenarioObj.type === 'scenario-outline' ? scenarioOutline : scenario}: ${scenarioObj.name}\n`;
 
-          // Scenario description
-          if (scenarioObj.description) {
-            text += scenarioObj.description.split('\n').map(line => `      ${line}`).join('\n') + '\n';
-          }
+            // Scenario description
+            if (scenarioObj.description) {
+              text += scenarioObj.description.split('\n').map(line => `      ${line}`).join('\n') + '\n';
+            }
 
-          // Scenario steps
+            // Scenario steps
+            if (Array.isArray(scenarioObj.steps)) {
+              scenarioObj.steps.forEach(step => {
+                let keyword = { فرض: given, وقتی: when, آنگاه: then, و: and, اما: but }[step.keyword] || step.keyword;
+                text += `      ${keyword} ${step.text}\n`;
+
+                // SAFE CHECK: Add data table if present and valid
+                if (step.dataTable) {
+                  if (Array.isArray(step.dataTable.headers) && step.dataTable.headers.length) {
+                    text += `        | ${step.dataTable.headers.join(' | ')} |\n`;
+                  }
+                  if (Array.isArray(step.dataTable.rows)) {
+                    step.dataTable.rows.forEach(row => {
+                      text += `        | ${(Array.isArray(row.values) ? row.values : []).join(' | ')} |\n`;
+                    });
+                  }
+                }
+
+                // Add doc string if present
+                if (step.docString) {
+                  text += `        """${step.docString.contentType ? step.docString.contentType : ''}\n`;
+                  text += step.docString.content.split('\n').map(line => `        ${line}`).join('\n') + '\n';
+                  text += `        """\n`;
+                }
+              });
+            }
+
+            // SAFE CHECK: Examples for scenario outlines
+            if (scenarioObj.type === 'scenario-outline' && scenarioObj.examples) {
+              text += `\n        ${examples}:\n`;
+              if (Array.isArray(scenarioObj.examples.headers) && scenarioObj.examples.headers.length) {
+                text += `          | ${scenarioObj.examples.headers.join(' | ')} |\n`;
+              }
+              if (Array.isArray(scenarioObj.examples.rows)) {
+                scenarioObj.examples.rows.forEach(row => {
+                  text += `          | ${(Array.isArray(row.values) ? row.values : []).join(' | ')} |\n`;
+                });
+              }
+            }
+
+            text += '\n';
+          });
+        }
+      });
+    }
+
+    // Direct scenarios (not in rules)
+    if (Array.isArray(feature.scenarios)) {
+      feature.scenarios.forEach(scenarioObj => {
+        // Scenario tags
+        if (Array.isArray(scenarioObj.tags) && scenarioObj.tags.length > 0) {
+          text += `  ${scenarioObj.tags.join(' ')}\n`;
+        }
+
+        // Scenario header
+        text += `  ${scenarioObj.type === 'scenario-outline' ? scenarioOutline : scenario}: ${scenarioObj.name}\n`;
+
+        // Scenario description
+        if (scenarioObj.description) {
+          text += scenarioObj.description.split('\n').map(line => `    ${line}`).join('\n') + '\n';
+        }
+
+        // Scenario steps
+        if (Array.isArray(scenarioObj.steps)) {
           scenarioObj.steps.forEach(step => {
             let keyword = { فرض: given, وقتی: when, آنگاه: then, و: and, اما: but }[step.keyword] || step.keyword;
-            text += `      ${keyword} ${step.text}\n`;
+            text += `    ${keyword} ${step.text}\n`;
 
             // SAFE CHECK: Add data table if present and valid
             if (step.dataTable) {
-              if (step.dataTable.headers?.length) {
-                text += `        | ${step.dataTable.headers.join(' | ')} |\n`;
+              if (Array.isArray(step.dataTable.headers) && step.dataTable.headers.length) {
+                text += `      | ${step.dataTable.headers.join(' | ')} |\n`;
               }
-              if (step.dataTable.rows) {
+              if (Array.isArray(step.dataTable.rows)) {
                 step.dataTable.rows.forEach(row => {
-                  text += `        | ${row.values?.join(' | ') || ''} |\n`;
+                  text += `      | ${(Array.isArray(row.values) ? row.values : []).join(' | ')} |\n`;
                 });
               }
             }
 
             // Add doc string if present
             if (step.docString) {
-              text += `        """${step.docString.contentType ? step.docString.contentType : ''}\n`;
-              text += step.docString.content.split('\n').map(line => `        ${line}`).join('\n') + '\n';
-              text += `        """\n`;
+              text += `      """${step.docString.contentType ? step.docString.contentType : ''}\n`;
+              text += step.docString.content.split('\n').map(line => `      ${line}`).join('\n') + '\n';
+              text += `      """\n`;
             }
           });
+        }
 
-          // SAFE CHECK: Examples for scenario outlines
-          if (scenarioObj.type === 'scenario-outline' && scenarioObj.examples) {
-            text += `\n        ${examples}:\n`;
-            if (scenarioObj.examples.headers?.length) {
-              text += `          | ${scenarioObj.examples.headers.join(' | ')} |\n`;
-            }
-            if (scenarioObj.examples.rows) {
-              scenarioObj.examples.rows.forEach(row => {
-                text += `          | ${row.values?.join(' | ') || ''} |\n`;
-              });
-            }
+        // SAFE CHECK: Examples for scenario outlines
+        if (scenarioObj.type === 'scenario-outline' && scenarioObj.examples) {
+          text += `\n    ${examples}:\n`;
+          if (Array.isArray(scenarioObj.examples.headers) && scenarioObj.examples.headers.length) {
+            text += `      | ${scenarioObj.examples.headers.join(' | ')} |\n`;
           }
-
-          text += '\n';
-        });
-      });
-    }
-
-    // Direct scenarios (not in rules)
-    feature.scenarios.forEach(scenarioObj => {
-      // Scenario tags
-      if (scenarioObj.tags && scenarioObj.tags.length > 0) {
-        text += `  ${scenarioObj.tags.join(' ')}\n`;
-      }
-
-      // Scenario header
-      text += `  ${scenarioObj.type === 'scenario-outline' ? scenarioOutline : scenario}: ${scenarioObj.name}\n`;
-
-      // Scenario description
-      if (scenarioObj.description) {
-        text += scenarioObj.description.split('\n').map(line => `    ${line}`).join('\n') + '\n';
-      }
-
-      // Scenario steps
-      scenarioObj.steps.forEach(step => {
-        let keyword = { فرض: given, وقتی: when, آنگاه: then, و: and, اما: but }[step.keyword] || step.keyword;
-        text += `    ${keyword} ${step.text}\n`;
-
-        // SAFE CHECK: Add data table if present and valid
-        if (step.dataTable) {
-          if (step.dataTable.headers?.length) {
-            text += `      | ${step.dataTable.headers.join(' | ')} |\n`;
-          }
-          if (step.dataTable.rows) {
-            step.dataTable.rows.forEach(row => {
-              text += `      | ${row.values?.join(' | ') || ''} |\n`;
+          if (Array.isArray(scenarioObj.examples.rows)) {
+            scenarioObj.examples.rows.forEach(row => {
+              text += `      | ${(Array.isArray(row.values) ? row.values : []).join(' | ')} |\n`;
             });
           }
         }
 
-        // Add doc string if present
-        if (step.docString) {
-          text += `      """${step.docString.contentType ? step.docString.contentType : ''}\n`;
-          text += step.docString.content.split('\n').map(line => `      ${line}`).join('\n') + '\n';
-          text += `      """\n`;
-        }
+        text += '\n';
       });
-
-      // SAFE CHECK: Examples for scenario outlines
-      if (scenarioObj.type === 'scenario-outline' && scenarioObj.examples) {
-        text += `\n    ${examples}:\n`;
-        if (scenarioObj.examples.headers?.length) {
-          text += `      | ${scenarioObj.examples.headers.join(' | ')} |\n`;
-        }
-        if (scenarioObj.examples.rows) {
-          scenarioObj.examples.rows.forEach(row => {
-            text += `      | ${row.values?.join(' | ') || ''} |\n`;
-          });
-        }
-      }
-
-      text += '\n';
-    });
+    }
 
     return text.trim();
   }

@@ -14,7 +14,6 @@ import { CreateFeatureSheet } from "@/components/projects/create-feature-sheet";
 import { ShareProjectDialog } from "@/components/projects/share-project-dialog";
 import { 
     createGherkinFromFeature, 
-    createFeatureInfo, 
     createProjectInfo,
     createBeautifulHTML
 } from "@/lib/export-utils";
@@ -125,26 +124,32 @@ export default function ProjectDetailsClient({ project, features: initialFeature
             const projectInfo = createProjectInfo(project, features);
             zip.file('project-info.txt', projectInfo);
             
-            // Create and add HTML file
+            // Add project JSON file for import
             const projectWithFeatures = {
-              ...project,
-              features: features
+                ...project,
+                features: features
             };
+            const projectJSON = JSON.stringify(projectWithFeatures, null, 2);
+            zip.file(`${project.name}.json`, projectJSON);
+            
+            // Create and add HTML file
             const htmlContent = createBeautifulHTML(projectWithFeatures, features);
             zip.file(`${project.name}.html`, htmlContent);
             
             // Add each feature as a separate folder with .feature file
-            features.forEach((feature) => {
-                const folderName = feature.name.replace(/[<>:"/\\|?*]/g, '_').trim();
-                const featureFolder = zip.folder(folderName);
-                if (featureFolder) {
-                    const gherkin = createGherkinFromFeature(feature);
-                    const featureInfo = createFeatureInfo(feature);
-                    
-                    featureFolder.file(`${folderName}.feature`, gherkin);
-                    featureFolder.file('info.txt', featureInfo);
-                }
-            });
+            if (Array.isArray(features)) {
+                features.forEach((feature) => {
+                    const folderName = feature.name.replace(/[<>:"/\\|?*]/g, '_').trim() || `feature-${feature.id}`;
+                    const featureFolder = zip.folder(folderName);
+                    if (featureFolder) {
+                        const gherkin = createGherkinFromFeature(feature);
+                        featureFolder.file(`${folderName}.feature`, gherkin);
+                        // Add info.txt for each feature
+                        // const featureInfo = createFeatureInfo(feature);
+                        // featureFolder.file('info.txt', featureInfo);
+                    }
+                });
+            }
             
             // Generate and download ZIP
             const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
@@ -205,14 +210,14 @@ export default function ProjectDetailsClient({ project, features: initialFeature
                             <DialogTrigger asChild>
                                 <Button variant="outline" size="sm" disabled={exporting}>
                                     <Download className="w-4 h-4 ml-2 rtl:ml-0 rtl:mr-2" />
-                                    {exporting ? 'در حال export...' : 'خروجی'}
+                                    {exporting ? 'در حال export...' : 'خروجی ZIP'}
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-md" dir="rtl">
                                 <DialogHeader>
                                     <DialogTitle className="flex items-center gap-2">
                                         <Download className="w-5 h-5" />
-                                        دانلود پروژه
+                                        دانلود پروژه (ZIP)
                                     </DialogTitle>
                                     <DialogDescription>
                                         فایل ZIP شامل تمام ویژگی‌ها، گزارش HTML و فایل‌های .feature دانلود خواهد شد

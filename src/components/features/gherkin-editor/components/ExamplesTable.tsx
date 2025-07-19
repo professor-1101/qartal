@@ -28,14 +28,14 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
     // Add column
     const handleAddColumn = () => {
         const newHeaders = [...safeHeaders, `پارامتر ${safeHeaders.length + 1}`];
-        const newRows = safeRows.map(row => ({ ...row, values: [...row.values, ""] }));
+        const newRows = safeRows.map(row => ({ ...row, values: Array.isArray(row.values) ? [...row.values, ""] : [""] }));
         onChange(newHeaders, newRows);
     };
 
     // Remove column
     const handleRemoveColumn = (colIdx: number) => {
         const newHeaders = safeHeaders.filter((_, i) => i !== colIdx);
-        const newRows = safeRows.map(row => ({ ...row, values: row.values.filter((_, i) => i !== colIdx) }));
+        const newRows = safeRows.map(row => ({ ...row, values: Array.isArray(row.values) ? row.values.filter((_, i) => i !== colIdx) : [] }));
         onChange(newHeaders, newRows);
     };
 
@@ -69,12 +69,12 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
     // Edit cell
     const handleCellEdit = (rowIdx: number, colIdx: number) => {
         setEditingCell({ row: rowIdx, col: colIdx });
-        setCellValue(safeRows[rowIdx].values[colIdx]);
+        setCellValue(Array.isArray(safeRows[rowIdx].values) ? safeRows[rowIdx].values[colIdx] : "");
     };
 
     const handleCellBlur = (rowIdx: number, colIdx: number) => {
         const newRows = safeRows.map((row, i) =>
-            i === rowIdx ? { ...row, values: row.values.map((v, j) => (j === colIdx ? cellValue : v)) } : row
+            i === rowIdx ? { ...row, values: (Array.isArray(row.values) ? row.values : []).map((v, j) => (j === colIdx ? cellValue : v)) } : row
         );
         onChange(safeHeaders, newRows);
         setEditingCell(null);
@@ -89,7 +89,7 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
         newHeaders.splice(toIdx, 0, moved);
         
         const newRows = safeRows.map(row => {
-            const newValues = [...row.values];
+            const newValues = Array.isArray(row.values) ? [...row.values] : [];
             const [movedValue] = newValues.splice(fromIdx, 1);
             newValues.splice(toIdx, 0, movedValue);
             return { ...row, values: newValues };
@@ -269,27 +269,20 @@ export const ExamplesTable: React.FC<ExamplesTableProps> = ({ headers, rows, onC
                                     onMouseEnter={() => setActiveRow(rowIdx)}
                                     onMouseLeave={() => setActiveRow(null)}
                                 >
-                                    {row.values.map((cell, colIdx) => (
-                                        <TableCell key={colIdx} className="p-0 border-r">
-                                            <div className="px-3 py-2 h-14 flex items-center">
-                                                {editingCell && editingCell.row === rowIdx && editingCell.col === colIdx ? (
-                                                    <Input
-                                                        className="w-full h-8 px-2 text-sm"
-                                                        value={cellValue}
-                                                        onChange={e => setCellValue(e.target.value)}
-                                                        onBlur={() => handleCellBlur(rowIdx, colIdx)}
-                                                        onKeyDown={e => e.key === "Enter" && handleCellBlur(rowIdx, colIdx)}
-                                                        autoFocus
-                                                    />
-                                                ) : (
-                                                    <div 
-                                                        className="w-full cursor-pointer truncate"
-                                                        onClick={() => handleCellEdit(rowIdx, colIdx)}
-                                                    >
-                                                        {cell || <span className="text-gray-400">برای ویرایش کلیک کنید</span>}
-                                                    </div>
-                                                )}
-                                            </div>
+                                    {safeHeaders.map((_, colIdx) => (
+                                        <TableCell key={colIdx} onClick={() => handleCellEdit(rowIdx, colIdx)}>
+                                            {editingCell && editingCell.row === rowIdx && editingCell.col === colIdx ? (
+                                                <Input
+                                                    className="w-full h-8 px-2 text-sm border rounded"
+                                                    value={cellValue}
+                                                    onChange={e => setCellValue(e.target.value)}
+                                                    onBlur={() => handleCellBlur(rowIdx, colIdx)}
+                                                    onKeyDown={e => e.key === "Enter" && handleCellBlur(rowIdx, colIdx)}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                Array.isArray(row.values) ? row.values[colIdx] : ''
+                                            )}
                                         </TableCell>
                                     ))}
                                     
