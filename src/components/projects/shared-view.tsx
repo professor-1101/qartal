@@ -90,7 +90,7 @@ function ScenarioContent({ scenario }: { scenario: Scenario }) {
                 <div className="space-y-2 pt-3 mt-3">
                     <span className="text-sm font-bold text-gray-800">مثال‌ها:</span>
                     <div className="overflow-x-auto">
-                        <table className="w-auto min-w-max border-separate border-spacing-0 text-sm" style={{ direction: 'rtl', borderCollapse: 'separate' }}>
+                        <table className="w-auto min-w-max border-separate border-spacing-0 text-sm" style={{ borderCollapse: 'separate' }}>
                             <thead>
                                 <tr>
                                     {(scenario.examples?.headers || []).map((h, i) => (

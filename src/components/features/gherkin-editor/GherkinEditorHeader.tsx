@@ -38,7 +38,7 @@ export function GherkinEditorHeader({ featureName, tags, dirty, onSave, onFeatur
   };
 
   return (
-    <nav className="sticky top-0 z-30 w-full bg-white border border-gray-200 rounded-lg flex items-center justify-between px-6 py-3 mb-6 rtl">
+    <nav className="sticky top-0 z-30 w-full bg-white border border-gray-200 rounded-lg flex items-center justify-between px-6 py-3 mb-6">
       <div className="flex items-center gap-3 min-w-0">
         {isEditing ? (
           <div className="flex items-center gap-2">

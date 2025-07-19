@@ -118,7 +118,7 @@ export function GherkinPreview({ feature }: { feature: Feature }) {
   const scenarios = feature.scenarios || [];
 
   return (
-    <div className="rounded-lg border border-gray-200 p-0" style={{ background: '#fafafa', direction: 'rtl' }}>
+    <div className="rounded-lg border border-gray-200 p-0" style={{ background: '#fafafa' }}>
       {/* Action Bar */}
       <div className="flex items-center justify-end gap-2 px-4 pt-3 pb-2 border-b border-gray-100 bg-[#fafafa] rounded-t-lg">
         <Button variant="ghost" size="sm" onClick={handleCopy} className="text-xs flex items-center gap-1">

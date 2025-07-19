@@ -188,13 +188,13 @@ export function ScenarioCard({
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center gap-2">
                             <Switch
                                 id={`scenario-type-${scenario.id}`}
                                 checked={scenario.type === "scenario-outline"}
                                 onCheckedChange={handleTypeSwitch}
                                 aria-label="Toggle scenario type between Scenario and Scenario Outline"
-                                className="data-[state=checked]:bg-blue-600"
+                                className="data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-200"
                             />
                             <Label htmlFor={`scenario-type-${scenario.id}`} className="text-xs text-gray-600">
                                 {scenario.type === "scenario-outline" ? "سناریو با مثال" : "سناریو"}
