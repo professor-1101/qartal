@@ -144,9 +144,19 @@ export default function ProjectsContent() {
     };
 
     const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        console.log('Formatting date:', dateString, 'to:', date.toLocaleDateString("fa-IR"));
-        return date.toLocaleDateString("fa-IR");
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return 'تاریخ نامعتبر';
+            }
+            return date.toLocaleDateString("fa-IR", {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } catch (error) {
+            return 'تاریخ نامعتبر';
+        }
     };
 
     // Show loading while session is loading
