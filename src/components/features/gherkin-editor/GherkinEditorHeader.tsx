@@ -1,22 +1,83 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Save, Edit } from "lucide-react";
 
 interface GherkinEditorHeaderProps {
   featureName: string;
   tags: string[];
   dirty: boolean;
   onSave: () => void;
+  onFeatureNameChange?: (newName: string) => void;
 }
 
-export function GherkinEditorHeader({ featureName, tags, dirty, onSave }: GherkinEditorHeaderProps) {
+export function GherkinEditorHeader({ featureName, tags, dirty, onSave, onFeatureNameChange }: GherkinEditorHeaderProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(featureName);
+
+  useEffect(() => {
+    setEditValue(featureName);
+  }, [featureName]);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditValue(featureName);
+  };
+
+  const handleSave = () => {
+    if (editValue.trim() && onFeatureNameChange) {
+      onFeatureNameChange(editValue.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditValue(featureName);
+    setIsEditing(false);
+  };
+
   return (
     <nav className="sticky top-0 z-30 w-full bg-white/90 backdrop-blur border-b border-gray-200 flex items-center justify-between px-6 py-3 mb-6 shadow-sm rtl">
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-lg font-bold text-gray-900 truncate max-w-xs md:max-w-md" title={featureName}>
-          {featureName || 'بدون نام'}
-        </span>
+        {isEditing ? (
+          <div className="flex items-center gap-2">
+            <Input
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={handleSave}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSave();
+                } else if (e.key === 'Escape') {
+                  handleCancel();
+                }
+              }}
+              className="text-lg font-bold max-w-xs md:max-w-md"
+              autoFocus
+            />
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span 
+              className="text-lg font-bold text-gray-900 truncate max-w-xs md:max-w-md cursor-pointer hover:text-blue-600 transition-colors" 
+              title={featureName}
+              onClick={handleEdit}
+            >
+              {featureName || 'بدون نام'}
+            </span>
+            {onFeatureNameChange && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleEdit}
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
         {tags && tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {tags.map((tag) => (

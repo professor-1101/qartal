@@ -34,6 +34,7 @@ export function GherkinEditor({ feature: initialFeature, onFeatureChange }: Gher
                                 onFeatureChange(logic.feature);
                                 logic.setDirty(false);
                             }}
+                            onFeatureNameChange={logic.handleFeatureNameChange}
                         />
                         <GherkinEditorBackground
                             background={logic.feature.background}

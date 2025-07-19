@@ -445,6 +445,15 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
     setDirty(true);
   };
 
+  // Handler for changing feature name
+  const handleFeatureNameChange = (newName: string) => {
+    setFeature(prev => ({
+      ...prev,
+      name: newName,
+    }));
+    setDirty(true);
+  };
+
   return {
     feature,
     setFeature,
@@ -478,5 +487,6 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
     handleDuplicateStep,
     handleReorderSteps,
     handleReorderScenarios,
+    handleFeatureNameChange,
   };
 } 
