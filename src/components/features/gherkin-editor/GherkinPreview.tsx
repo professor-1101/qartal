@@ -164,8 +164,8 @@ export function GherkinPreview({ feature }: { feature: Feature }) {
                     {step.dataTable && renderTable(step.dataTable.headers, step.dataTable.rows.map(r => r.values))}
                   </div>
                 ))}
-                {scenario.examples && scenario.examples.rows.length > 0 && 
-                  renderTable(scenario.examples.headers, scenario.examples.rows.map(r => r.values))}
+                            {scenario.type === 'scenario-outline' && scenario.examples && scenario.examples.rows.length > 0 && 
+              renderTable(scenario.examples.headers, scenario.examples.rows.map(r => r.values))}
               </div>
             ))}
           </div>
@@ -181,7 +181,7 @@ export function GherkinPreview({ feature }: { feature: Feature }) {
                 {step.dataTable && renderTable(step.dataTable.headers, step.dataTable.rows.map(r => r.values))}
               </div>
             ))}
-            {scenario.examples && scenario.examples.rows.length > 0 && 
+            {scenario.type === 'scenario-outline' && scenario.examples && scenario.examples.rows.length > 0 && 
               renderTable(scenario.examples.headers, scenario.examples.rows.map(r => r.values))}
           </div>
         ))}
