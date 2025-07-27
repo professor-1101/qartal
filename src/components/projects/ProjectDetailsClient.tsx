@@ -172,7 +172,7 @@ export default function ProjectDetailsClient({ project, features: initialFeature
     };
 
     return (
-        <div className="w-full px-4 sm:px-6 py-10">
+        <div className="w-full px-4 sm:px-6">
             {/* Project Header */}
             <div className="mb-12">
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-8">
@@ -326,7 +326,7 @@ export default function ProjectDetailsClient({ project, features: initialFeature
                                         <div className="flex items-center gap-4 text-sm">
                                             <div className="flex items-center gap-2">
                                                 <CheckSquare className="h-4 w-4 text-blue-500" />
-                                                <span className="font-medium">{feature.background?.steps?.length || 0}</span>
+                                                <span className="font-medium">{(feature.background?.steps?.length || 0) + (feature.scenarios?.reduce((acc, scenario) => acc + (scenario.steps?.length || 0), 0) || 0)}</span>
                                                 <span className="text-muted-foreground">مراحل</span>
                                             </div>
                                             <div className="flex items-center gap-2">
