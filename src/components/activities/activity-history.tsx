@@ -30,8 +30,6 @@ import {
   Clock,
   User,
   Search,
-  Calendar,
-  Filter,
 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 
@@ -98,8 +96,6 @@ export function ActivityHistory({
   const [filterType, setFilterType] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState<string>('');
-  const [filterProject, setFilterProject] = useState<string>('');
-  const [filterFeature, setFilterFeature] = useState<string>('');
 
   const fetchActivities = async () => {
     try {
@@ -111,8 +107,6 @@ export function ActivityHistory({
         ...(filterType !== 'ALL' && { type: filterType }),
         ...(searchTerm && { search: searchTerm }),
         ...(filterDate && { date: filterDate }),
-        ...(filterProject && { project: filterProject }),
-        ...(filterFeature && { feature: filterFeature }),
       });
 
       const url = projectId
@@ -134,7 +128,7 @@ export function ActivityHistory({
 
   useEffect(() => {
     fetchActivities();
-  }, [page, filterType, searchTerm, filterDate, filterProject, filterFeature, projectId]);
+  }, [page, filterType, searchTerm, filterDate, projectId]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
