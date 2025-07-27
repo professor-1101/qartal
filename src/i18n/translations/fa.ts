@@ -265,6 +265,7 @@ export const fa = {
         newProject: "پروژه جدید",
         createProject: "ایجاد پروژه",
         editProject: "ویرایش پروژه",
+        update: "بروزرسانی",
         emptyState: {
             title: "پروژه‌ای یافت نشد!",
             description: "برای شروع، پروژه جدیدی ایجاد کنید.",
