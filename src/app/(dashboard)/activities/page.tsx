@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { redirect } from "next/navigation";
-import { ActivityHistory } from "@/components/activities/activity-history";
 import { ActivityPageClient } from "./activity-page-client";
 
 export default async function ActivitiesPage() {

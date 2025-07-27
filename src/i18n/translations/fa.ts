@@ -302,6 +302,8 @@ export const fa = {
             filterToday: "امروز",
             filterThisWeek: "این هفته",
             filterThisMonth: "این ماه",
+            filterExactDate: "تاریخ دقیق",
+            selectExactDate: "انتخاب تاریخ دقیق",
             searchPlaceholder: "جستجو در فعالیت‌ها...",
             projectActivities: "تاریخچه فعالیت‌های پروژه",
             userActivities: "تاریخچه فعالیت‌های کاربر",

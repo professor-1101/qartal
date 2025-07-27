@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Activity,
   FileText,
@@ -96,6 +97,7 @@ export function ActivityHistory({
   const [filterType, setFilterType] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   const fetchActivities = async () => {
     try {
@@ -107,6 +109,7 @@ export function ActivityHistory({
         ...(filterType !== 'ALL' && { type: filterType }),
         ...(searchTerm && { search: searchTerm }),
         ...(filterDate && filterDate !== 'all' && { date: filterDate }),
+        ...(selectedDate && { exactDate: selectedDate.toISOString().split('T')[0] }),
       });
 
       const url = projectId
@@ -128,7 +131,7 @@ export function ActivityHistory({
 
   useEffect(() => {
     fetchActivities();
-  }, [page, filterType, searchTerm, filterDate, projectId]);
+  }, [page, filterType, searchTerm, filterDate, selectedDate, projectId]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -202,7 +205,12 @@ export function ActivityHistory({
                 <SelectItem value="LOGOUT">{t('activities.filterLogout')}</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterDate} onValueChange={setFilterDate}>
+            <Select value={filterDate} onValueChange={(value) => {
+              setFilterDate(value);
+              if (value !== 'exact') {
+                setSelectedDate(undefined);
+              }
+            }}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder={t('activities.filterDate')} />
               </SelectTrigger>
@@ -211,8 +219,17 @@ export function ActivityHistory({
                 <SelectItem value="today">{t('activities.filterToday')}</SelectItem>
                 <SelectItem value="week">{t('activities.filterThisWeek')}</SelectItem>
                 <SelectItem value="month">{t('activities.filterThisMonth')}</SelectItem>
+                <SelectItem value="exact">{t('activities.filterExactDate')}</SelectItem>
               </SelectContent>
             </Select>
+            {filterDate === 'exact' && (
+              <DatePicker
+                date={selectedDate}
+                onDateChange={setSelectedDate}
+                placeholder={t('activities.selectExactDate')}
+                className="w-40"
+              />
+            )}
           </div>
         </div>
       </CardHeader>

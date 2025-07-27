@@ -51,6 +51,7 @@ export async function GET(
     const type = searchParams.get('type');
     const search = searchParams.get('search');
     const date = searchParams.get('date');
+    const exactDate = searchParams.get('exactDate');
     const feature = searchParams.get('feature');
 
     const skip = (page - 1) * limit;
@@ -67,7 +68,16 @@ export async function GET(
         { action: { contains: search, mode: 'insensitive' } }
       ];
     }
-    if (date) {
+    if (exactDate) {
+      // Filter for exact date
+      const startOfDay = new Date(exactDate);
+      const endOfDay = new Date(exactDate);
+      endOfDay.setDate(endOfDay.getDate() + 1);
+      where.createdAt = { 
+        gte: startOfDay,
+        lt: endOfDay
+      };
+    } else if (date) {
       const now = new Date();
       let startDate: Date;
       switch (date) {
