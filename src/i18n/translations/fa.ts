@@ -284,6 +284,9 @@ export const fa = {
         },
         activities: {
             title: "تاریخچه فعالیت‌ها",
+            pageTitle: "تاریخچه فعالیت‌ها",
+            pageDescription: "تمام فعالیت‌های شما در سیستم",
+            fullHistoryTitle: "تاریخچه کامل فعالیت‌ها",
             noActivities: "هیچ فعالیتی یافت نشد",
             filterAll: "همه",
             filterCreate: "ایجاد",

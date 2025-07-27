@@ -12,7 +12,7 @@ import { Plus, Edit,  FileCode, CheckSquare, Layers, EllipsisVertical, Share2, T
 import { Feature, Project } from '@/types/index';
 import { CreateFeatureSheet } from "@/components/projects/create-feature-sheet";
 import { ShareProjectDialog } from "@/components/projects/share-project-dialog";
-import { ActivityHistory } from "@/components/activities/activity-history";
+
 import { 
     createGherkinFromFeature, 
     createProjectInfo,
@@ -376,13 +376,7 @@ export default function ProjectDetailsClient({ project, features: initialFeature
                 </div>
             )}
 
-            {/* Activity History */}
-            <div className="mt-8">
-                <ActivityHistory 
-                    projectId={project.id}
-                    title="تاریخچه فعالیت‌های پروژه"
-                />
-            </div>
+
 
             {/* Dialogs that are controlled by this component */}
             <CreateFeatureSheet
