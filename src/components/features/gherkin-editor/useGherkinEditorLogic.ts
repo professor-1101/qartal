@@ -451,6 +451,15 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
     setDirty(true);
   };
 
+  // Handler for changing feature description
+  const handleFeatureDescriptionChange = (newDescription: string) => {
+    setFeature(prev => ({
+      ...prev,
+      description: newDescription,
+    }));
+    setDirty(true);
+  };
+
   return {
     feature,
     setFeature,
@@ -485,5 +494,6 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
     handleReorderSteps,
     handleReorderScenarios,
     handleFeatureNameChange,
+    handleFeatureDescriptionChange,
   };
 } 

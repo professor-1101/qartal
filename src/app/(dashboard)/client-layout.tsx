@@ -34,7 +34,7 @@ function SidebarContentWithHeader({ children }: { children: React.ReactNode }) {
             isOpen ? "lg:mr-64" : "lg:mr-0"
         )}>
             <SiteHeader />
-            <main className="flex-1 w-full px-4 py-6">{children}</main>
+            <main className="flex-1 w-full px-6 py-6">{children}</main>
         </div>
     );
 }

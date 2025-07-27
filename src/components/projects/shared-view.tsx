@@ -16,7 +16,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 import {
-    FileText, GitBranch,  Tag, Layers3, Combine, Users, Calendar,
+    FileText, Layers,  Tag, Layers3, Combine, Users, Calendar,
      BookText, ChevronsUpDown} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -73,7 +73,7 @@ function ScenarioContent({ scenario }: { scenario: Scenario }) {
     return (
         <div className="border-t border-dashed border-muted pt-4 mt-4">
             <div className="flex items-center gap-2 mb-1">
-                <GitBranch className="h-4 w-4 text-muted-foreground" />
+                <Layers className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium text-base">{scenario.name}</span>
                 <Badge variant={scenario.type === 'scenario-outline' ? 'secondary' : 'outline'} className="text-xs font-normal">
                     {scenario.type === 'scenario-outline' ? 'Scenario Outline' : 'Scenario'}
@@ -202,7 +202,7 @@ function TableOfContents({ features, scrollTo }: { features: Feature[], scrollTo
                                                 onClick={() => scrollTo(`scenario-${scenario.id}`)}
                                                 className="w-full flex items-center gap-2 text-right p-1.5 pr-2 rounded hover:bg-muted transition-colors text-xs"
                                             >
-                                                <GitBranch className="w-3.5 h-3.5 text-muted-foreground/80 shrink-0" />
+                                                <Layers className="w-3.5 h-3.5 text-muted-foreground/80 shrink-0" />
                                                 <span className="truncate">{scenario.name}</span>
                                             </button>
                                         </li>

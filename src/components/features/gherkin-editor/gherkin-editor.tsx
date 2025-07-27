@@ -30,6 +30,7 @@ export function GherkinEditor({ feature: initialFeature, onFeatureChange }: Gher
                     <div className="flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-1">
                         <GherkinEditorHeader
                             featureName={logic.feature.name}
+                            featureDescription={logic.feature.description}
                             tags={logic.feature.tags}
                             dirty={logic.dirty}
                             onSave={() => {
@@ -37,6 +38,7 @@ export function GherkinEditor({ feature: initialFeature, onFeatureChange }: Gher
                                 logic.setDirty(false);
                             }}
                             onFeatureNameChange={logic.handleFeatureNameChange}
+                            onFeatureDescriptionChange={logic.handleFeatureDescriptionChange}
                         />
                         <GherkinEditorBackground
                             background={logic.feature.background}

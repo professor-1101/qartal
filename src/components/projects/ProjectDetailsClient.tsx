@@ -8,7 +8,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Edit,  FileCode, CheckSquare, GitBranch, EllipsisVertical, Share2, Trash2, Download, GripVertical } from "lucide-react";
+import { Plus, Edit,  FileCode, CheckSquare, Layers, EllipsisVertical, Share2, Trash2, Download, GripVertical } from "lucide-react";
 import { Feature, Project } from '@/types/index';
 import { CreateFeatureSheet } from "@/components/projects/create-feature-sheet";
 import { ShareProjectDialog } from "@/components/projects/share-project-dialog";
@@ -251,13 +251,13 @@ export default function ProjectDetailsClient({ project, features: initialFeature
                 {/* Project Stats */}
                 <div className="flex items-center gap-6 text-sm">
                     <div className="flex items-center gap-2">
-                        <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                        <CheckSquare className="h-4 w-4 text-blue-500" />
                         <span className="font-medium">{features.reduce((acc, feature) => acc + (feature.background?.steps?.length || 0) + (feature.scenarios?.reduce((scenarioAcc, scenario) => scenarioAcc + (scenario.steps?.length || 0), 0) || 0), 0)}</span>
                         <span>مراحل</span>
                     </div>
                     <div className="w-px h-4 bg-border" />
                     <div className="flex items-center gap-2">
-                        <GitBranch className="h-4 w-4 text-muted-foreground" />
+                        <Layers className="h-4 w-4 text-green-500" />
                         <span className="font-medium">{features.length}</span>
                         <span>ویژگی‌ها</span>
                     </div>
@@ -326,11 +326,18 @@ export default function ProjectDetailsClient({ project, features: initialFeature
                                         <div className="flex items-center gap-4 text-sm">
                                             <div className="flex items-center gap-2">
                                                 <CheckSquare className="h-4 w-4 text-blue-500" />
-                                                <span className="font-medium">{(feature.background?.steps?.length || 0) + (feature.scenarios?.reduce((acc, scenario) => acc + (scenario.steps?.length || 0), 0) || 0)}</span>
+                                                <span className="font-medium">
+                                                    {(() => {
+                                                        const backgroundSteps = feature.background?.steps?.length || 0;
+                                                        const scenarioSteps = feature.scenarios?.reduce((acc, scenario) => acc + (scenario.steps?.length || 0), 0) || 0;
+                                                        const totalSteps = backgroundSteps + scenarioSteps;
+                                                        return totalSteps;
+                                                    })()}
+                                                </span>
                                                 <span className="text-muted-foreground">مراحل</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <GitBranch className="h-4 w-4 text-green-500" />
+                                                <Layers className="h-4 w-4 text-green-500" />
                                                 <span className="font-medium">{feature.scenarios?.length || 0}</span>
                                                 <span className="text-muted-foreground">سناریوها</span>
                                             </div>
