@@ -95,7 +95,7 @@ export function ActivityHistory({
   const [totalPages, setTotalPages] = useState(1);
   const [filterType, setFilterType] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterDate, setFilterDate] = useState<string>('');
+  const [filterDate, setFilterDate] = useState<string>('all');
 
   const fetchActivities = async () => {
     try {
@@ -106,7 +106,7 @@ export function ActivityHistory({
         limit: '10',
         ...(filterType !== 'ALL' && { type: filterType }),
         ...(searchTerm && { search: searchTerm }),
-        ...(filterDate && { date: filterDate }),
+        ...(filterDate && filterDate !== 'all' && { date: filterDate }),
       });
 
       const url = projectId
@@ -207,7 +207,7 @@ export function ActivityHistory({
                 <SelectValue placeholder={t('activities.filterDate')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('activities.filterAll')}</SelectItem>
+                <SelectItem value="all">{t('activities.filterAll')}</SelectItem>
                 <SelectItem value="today">{t('activities.filterToday')}</SelectItem>
                 <SelectItem value="week">{t('activities.filterThisWeek')}</SelectItem>
                 <SelectItem value="month">{t('activities.filterThisMonth')}</SelectItem>
