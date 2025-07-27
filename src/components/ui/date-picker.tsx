@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-
+import { format } from "date-fns"
+import { faIR } from "date-fns/locale"
 import { Calendar as CalendarIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -12,25 +13,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-
-// Simple Persian date formatter
-function formatPersianDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  
-  // Convert to Persian calendar (approximate)
-  const persianYear = year - 621;
-  const persianMonth = month > 3 ? month - 3 : month + 9;
-  const persianDay = day;
-  
-  const persianMonths = [
-    "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
-    "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
-  ];
-  
-  return `${persianDay} ${persianMonths[persianMonth - 1]} ${persianYear}`;
-}
 
 interface DatePickerProps {
   date?: Date
@@ -52,7 +34,7 @@ export function DatePicker({ date, onDateChange, placeholder, className }: DateP
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? formatPersianDate(date) : placeholder || "انتخاب تاریخ"}
+          {date ? format(date, "PPP", { locale: faIR }) : placeholder || "انتخاب تاریخ"}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -61,6 +43,7 @@ export function DatePicker({ date, onDateChange, placeholder, className }: DateP
           selected={date}
           onSelect={onDateChange}
           initialFocus
+          locale={faIR}
         />
       </PopoverContent>
     </Popover>
