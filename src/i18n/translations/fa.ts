@@ -282,45 +282,8 @@ export const fa = {
                 editScenario: "ویرایش سناریو"
             }
         },
-        activities: {
-            title: "تاریخچه فعالیت‌ها",
-            pageTitle: "تاریخچه فعالیت‌ها",
-            pageDescription: "تمام فعالیت‌های شما در سیستم",
-            fullHistoryTitle: "تاریخچه کامل فعالیت‌ها",
-            noActivities: "هیچ فعالیتی یافت نشد",
-            filterAll: "همه",
-            filterCreate: "ایجاد",
-            filterUpdate: "بروزرسانی",
-            filterDelete: "حذف",
-            filterImport: "ایمپورت",
-            filterExport: "دانلود",
-            filterReorder: "تغییر ترتیب",
-            filterLogin: "ورود",
-            filterLogout: "خروج",
-            filterType: "نوع فعالیت",
-            filterDate: "تاریخ",
-            filterToday: "امروز",
-            filterThisWeek: "این هفته",
-            filterThisMonth: "این ماه",
-            filterExactDate: "تاریخ دقیق",
-            selectExactDate: "انتخاب تاریخ دقیق",
-            searchPlaceholder: "جستجو در فعالیت‌ها...",
-            projectActivities: "تاریخچه فعالیت‌های پروژه",
-            userActivities: "تاریخچه فعالیت‌های کاربر",
-            previous: "قبلی",
-            next: "بعدی",
-            pageInfo: "صفحه {current} از {total}",
-            activityTypes: {
-                CREATE: "ایجاد",
-                UPDATE: "بروزرسانی",
-                DELETE: "حذف",
-                IMPORT: "ایمپورت",
-                EXPORT: "دانلود",
-                REORDER: "تغییر ترتیب",
-                LOGIN: "ورود",
-                LOGOUT: "خروج"
-            }
-        }
+    
+        
     },
     features: {
         "title": "ویژگی‌ها",
@@ -455,5 +418,47 @@ export const fa = {
         fixes: "رفع خطاها",
         breaking: "تغییرات شکستن سازگاری",
         latest: "آخرین"
-    }
+    },
+    activities: {
+        title: 'تاریخچه فعالیت‌ها',
+        searchPlaceholder: 'جستجو در فعالیت‌ها...',
+        noActivities: 'فعالیتی یافت نشد',
+        filterTypeLabel: 'فیلتر بر اساس نوع',
+        filterDateLabel: 'فیلتر بر اساس تاریخ',
+        selectExactDate: 'انتخاب تاریخ دقیق',
+        previous: 'قبلی',
+        next: 'بعدی',
+        pageInfo: 'صفحه {current} از {total}',
+        
+        filterTypes: {
+          all: 'همه',
+          create: 'ایجاد',
+          update: 'به‌روزرسانی',
+          delete: 'حذف',
+          import: 'وارد کردن',
+          export: 'خارج کردن',
+          reorder: 'مرتب‌سازی مجدد',
+          login: 'ورود',
+          logout: 'خروج',
+        },
+        
+        dateFilters: {
+          all: 'همه تاریخ‌ها',
+          today: 'امروز',
+          week: 'این هفته',
+          month: 'این ماه',
+          exact: 'تاریخ دقیق',
+        },
+        
+        activityTypes: {
+          CREATE: 'ایجاد',
+          UPDATE: 'به‌روزرسانی',
+          DELETE: 'حذف',
+          IMPORT: 'وارد کردن',
+          EXPORT: 'خارج کردن',
+          REORDER: 'مرتب‌سازی مجدد',
+          LOGIN: 'ورود',
+          LOGOUT: 'خروج',
+        }
+      }
 };

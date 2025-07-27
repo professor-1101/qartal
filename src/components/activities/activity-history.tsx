@@ -17,7 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
+import JalaliDatePicker from "@/components/ui/date-picker";
+
 import {
   Activity,
   FileText,
@@ -82,8 +83,6 @@ const activityColors = {
   LOGOUT: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
-// Remove hardcoded labels - will use translations instead
-
 export function ActivityHistory({
   projectId,
   title,
@@ -99,41 +98,65 @@ export function ActivityHistory({
   const [filterDate, setFilterDate] = useState<string>('all');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
+  // تابع بهبود یافته برای ترجمه با fallback
+  const translate = (key: string, fallback: string) => {
+    const translation = t(key);
+    if (!translation || translation === key) {
+      console.warn(`Translation missing for key: "${key}"`);
+      return fallback;
+    }
+    return translation;
+  };
+
   const fetchActivities = async () => {
     try {
       setLoading(true);
 
-      const params = new URLSearchParams({
+      // آماده‌سازی پارامترها
+      const paramsObj: Record<string, string> = {
         page: page.toString(),
         limit: '10',
-        ...(filterType !== 'ALL' && { type: filterType }),
-        ...(searchTerm && { search: searchTerm }),
-        ...(filterDate && filterDate !== 'all' && { date: filterDate }),
-        ...(selectedDate && { exactDate: selectedDate.toISOString().split('T')[0] }),
-      });
+      };
+      if (filterType !== 'ALL') paramsObj.type = filterType;
+      if (searchTerm) paramsObj.search = searchTerm;
+      if (filterDate && filterDate !== 'all' && filterDate !== 'exact')
+        paramsObj.date = filterDate;
+      if (filterDate === 'exact' && selectedDate)
+        paramsObj.exactDate = selectedDate.toISOString().split('T')[0];
+
+      const params = new URLSearchParams(paramsObj);
 
       const url = projectId
         ? `/api/projects/${projectId}/activities?${params}`
         : `/api/activities?${params}`;
 
       const response = await fetch(url);
+
       if (response.ok) {
         const data = await response.json();
-        setActivities(data.activities);
-        setTotalPages(data.pagination.pages);
+        console.log('Fetched activities:', data);
+        setActivities(data.activities || []);
+        setTotalPages(data.pagination?.pages || 1);
+      } else {
+        console.error('Fetch failed with status:', response.status);
+        setActivities([]);
+        setTotalPages(1);
       }
     } catch (error) {
       console.error('Error fetching activities:', error);
+      setActivities([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
 
+  // واکنش به تغییرات فیلترها یا صفحه
   useEffect(() => {
     fetchActivities();
   }, [page, filterType, searchTerm, filterDate, selectedDate, projectId]);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string) => {  
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor(
@@ -154,21 +177,19 @@ export function ActivityHistory({
     }
   };
 
+  // آیکون هر نوع اکتیویتی
   const getActivityIcon = (type: string) => {
     const IconComponent =
       activityIcons[type as keyof typeof activityIcons] || Activity;
     return <IconComponent className="h-4 w-4" />;
   };
 
+  // رنگ‌بندی هر نوع اکتیویتی
   const getActivityColor = (type: string) => {
     return (
       activityColors[type as keyof typeof activityColors] ||
       'bg-gray-100 text-gray-800 border-gray-200'
     );
-  };
-
-  const getActivityLabel = (type: string) => {
-    return t(`activities.activityTypes.${type}`) || type;
   };
 
   return (
@@ -177,62 +198,112 @@ export function ActivityHistory({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
-            {title || t('activities.title')}
+            {title || translate('activities.title', 'تاریخچه فعالیت‌ها')}
           </CardTitle>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('activities.searchPlaceholder')}
+                placeholder={translate('activities.searchPlaceholder', 'جستجو در فعالیت‌ها...')}
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
+                }}
                 className="pl-10 w-64"
               />
             </div>
-            <Select value={filterType} onValueChange={setFilterType}>
+
+            <Select
+              value={filterType}
+              onValueChange={(value) => {
+                setFilterType(value);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="w-40">
-                <SelectValue placeholder={t('activities.filterType')} />
+                <SelectValue 
+                  placeholder={translate('activities.filterTypeLabel', 'فیلتر بر اساس نوع')} 
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">{t('activities.filterAll')}</SelectItem>
-                <SelectItem value="CREATE">{t('activities.filterCreate')}</SelectItem>
-                <SelectItem value="UPDATE">{t('activities.filterUpdate')}</SelectItem>
-                <SelectItem value="DELETE">{t('activities.filterDelete')}</SelectItem>
-                <SelectItem value="IMPORT">{t('activities.filterImport')}</SelectItem>
-                <SelectItem value="EXPORT">{t('activities.filterExport')}</SelectItem>
-                <SelectItem value="REORDER">{t('activities.filterReorder')}</SelectItem>
-                <SelectItem value="LOGIN">{t('activities.filterLogin')}</SelectItem>
-                <SelectItem value="LOGOUT">{t('activities.filterLogout')}</SelectItem>
+                <SelectItem value="ALL">
+                  {translate('activities.filterTypes.all', 'همه')}
+                </SelectItem>
+                <SelectItem value="CREATE">
+                  {translate('activities.filterTypes.create', 'ایجاد')}
+                </SelectItem>
+                <SelectItem value="UPDATE">
+                  {translate('activities.filterTypes.update', 'به‌روزرسانی')}
+                </SelectItem>
+                <SelectItem value="DELETE">
+                  {translate('activities.filterTypes.delete', 'حذف')}
+                </SelectItem>
+                <SelectItem value="IMPORT">
+                  {translate('activities.filterTypes.import', 'وارد کردن')}
+                </SelectItem>
+                <SelectItem value="EXPORT">
+                  {translate('activities.filterTypes.export', 'خارج کردن')}
+                </SelectItem>
+                <SelectItem value="REORDER">
+                  {translate('activities.filterTypes.reorder', 'مرتب‌سازی مجدد')}
+                </SelectItem>
+                <SelectItem value="LOGIN">
+                  {translate('activities.filterTypes.login', 'ورود')}
+                </SelectItem>
+                <SelectItem value="LOGOUT">
+                  {translate('activities.filterTypes.logout', 'خروج')}
+                </SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterDate} onValueChange={(value) => {
-              setFilterDate(value);
-              if (value !== 'exact') {
-                setSelectedDate(undefined);
-              }
-            }}>
+
+            <Select
+              value={filterDate}
+              onValueChange={(value) => {
+                setFilterDate(value);
+                setPage(1);
+                if (value !== 'exact') setSelectedDate(undefined);
+              }}
+            >
               <SelectTrigger className="w-40">
-                <SelectValue placeholder={t('activities.filterDate')} />
+                <SelectValue 
+                  placeholder={translate('activities.filterDateLabel', 'فیلتر بر اساس تاریخ')} 
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('activities.filterAll')}</SelectItem>
-                <SelectItem value="today">{t('activities.filterToday')}</SelectItem>
-                <SelectItem value="week">{t('activities.filterThisWeek')}</SelectItem>
-                <SelectItem value="month">{t('activities.filterThisMonth')}</SelectItem>
-                <SelectItem value="exact">{t('activities.filterExactDate')}</SelectItem>
+                <SelectItem value="all">
+                  {translate('activities.dateFilters.all', 'همه تاریخ‌ها')}
+                </SelectItem>
+                <SelectItem value="today">
+                  {translate('activities.dateFilters.today', 'امروز')}
+                </SelectItem>
+                <SelectItem value="week">
+                  {translate('activities.dateFilters.week', 'این هفته')}
+                </SelectItem>
+                <SelectItem value="month">
+                  {translate('activities.dateFilters.month', 'این ماه')}
+                </SelectItem>
+                <SelectItem value="exact">
+                  {translate('activities.dateFilters.exact', 'تاریخ دقیق')}
+                </SelectItem>
               </SelectContent>
             </Select>
+
             {filterDate === 'exact' && (
-              <DatePicker
-                date={selectedDate}
-                onDateChange={setSelectedDate}
-                placeholder={t('activities.selectExactDate')}
-                className="w-40"
-              />
-            )}
+  <JalaliDatePicker
+    date={selectedDate}
+    onDateChange={(date) => {
+      setSelectedDate(date || undefined);
+      setPage(1);
+    }}
+    placeholder={translate('activities.selectExactDate', 'انتخاب تاریخ دقیق')}
+    className="w-40"
+  />
+)}
           </div>
         </div>
       </CardHeader>
+
       <CardContent>
         {loading ? (
           <div className="flex items-center justify-center py-8">
@@ -241,7 +312,7 @@ export function ActivityHistory({
         ) : activities.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>{t('activities.noActivities')}</p>
+            <p>{translate('activities.noActivities', 'فعالیتی یافت نشد')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -265,16 +336,17 @@ export function ActivityHistory({
                       variant="outline"
                       className={getActivityColor(activity.type)}
                     >
-                      {getActivityLabel(activity.type)}
+                      {translate(
+                        `activities.activityTypes.${activity.type}`,
+                        activity.type
+                      )}
                     </Badge>
                     <span className="text-sm text-muted-foreground flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {formatDate(activity.createdAt)}
                     </span>
                   </div>
-                  <p className="text-sm font-medium mb-1">
-                    {activity.description}
-                  </p>
+                  <p className="text-sm font-medium mb-1">{activity.description}</p>
                   {(activity.project || activity.feature) && (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       {activity.project && (
@@ -294,26 +366,29 @@ export function ActivityHistory({
                 </div>
               </div>
             ))}
+
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-6">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(page - 1)}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                 >
-                  {t('activities.previous')}
+                  {translate('activities.previous', 'قبلی')}
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  {t('activities.pageInfo').replace('{current}', page.toString()).replace('{total}', totalPages.toString())}
+                  {translate('activities.pageInfo', 'صفحه {current} از {total}')
+                    .replace('{current}', page.toString())
+                    .replace('{total}', totalPages.toString())}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(page + 1)}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                 >
-                  {t('activities.next')}
+                  {translate('activities.next', 'بعدی')}
                 </Button>
               </div>
             )}

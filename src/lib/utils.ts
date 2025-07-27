@@ -34,3 +34,12 @@ export function generateShortUrl(projectId: string): string {
   // Fallback for server-side rendering
   return `https://localhost:3000/s/${shortCode}`;
 }
+
+export const toPersianDigits = (input: string | number): string => {
+  if (typeof input === 'number') {
+    input = input.toString();
+  }
+  
+  const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+  return input.replace(/\d/g, (d) => persianDigits[parseInt(d)]);
+};

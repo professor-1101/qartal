@@ -1,10 +1,10 @@
 'use client';
 
 import { ActivityHistory } from "@/components/activities/activity-history";
-import { useI18n } from "@/i18n";
+// import { useI18n } from "@/i18n";
 
 export function ActivityPageClient() {
-    const { t } = useI18n();
+    // const { t } = useI18n();
 
     return (
         <div className="container mx-auto py-6 space-y-6">
