@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from 'nanoid';
 import { deepNormalizeProject } from '@/lib/deepNormalize';
+import { ActivityLogger } from "@/lib/activity-logger";
 
 export async function POST(request: NextRequest) {
     try {
@@ -212,6 +213,10 @@ export async function POST(request: NextRequest) {
                 },
             },
         });
+
+        // Log project import activity
+        await ActivityLogger.logProjectImported(user.id, project.id, project.name, data.features?.length || 0);
+
         return NextResponse.json(updatedProject);
     } catch (e: any) {
         console.error("Error importing project:", e, e?.meta || "");

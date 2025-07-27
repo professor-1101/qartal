@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
+import { ActivityLogger } from "@/lib/activity-logger";
 
 export async function POST(request: NextRequest, { params }: { params: { projectId: string } }) {
     try {
@@ -19,10 +20,23 @@ export async function POST(request: NextRequest, { params }: { params: { project
         if (!project) {
             return NextResponse.json({ error: "Project not found" }, { status: 404 });
         }
-        const { features } = await request.json();
+        const { features, movedFeatureId, oldPosition, newPosition } = await request.json();
         if (!Array.isArray(features)) {
             return NextResponse.json({ error: "Invalid features array" }, { status: 400 });
         }
+        
+        // Get the moved feature name for logging
+        let movedFeatureName = "ویژگی";
+        if (movedFeatureId) {
+            const movedFeature = await prisma.feature.findUnique({
+                where: { id: movedFeatureId, projectId },
+                select: { name: true }
+            });
+            if (movedFeature) {
+                movedFeatureName = movedFeature.name;
+            }
+        }
+        
         // Use transaction to update features and project
         await prisma.$transaction(async (tx) => {
             // Update all features in parallel
@@ -36,6 +50,15 @@ export async function POST(request: NextRequest, { params }: { params: { project
                 data: { updatedAt: new Date() }
             });
         });
+
+        // Log feature reorder activity with specific feature information
+        await ActivityLogger.logFeatureReordered(
+            user.id, 
+            projectId, 
+            movedFeatureName, 
+            oldPosition || 0, 
+            newPosition || 0
+        );
         
         return NextResponse.json({ success: true });
     } catch (error) {

@@ -18,6 +18,7 @@ model User {
   accounts      Account[]
   projects      Project[]
   sessions      Session[]
+  activities    Activity[]
 }
 
 model Project {
@@ -32,6 +33,7 @@ model Project {
   gherkinFiles GherkinFile[]
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   slang        String        @unique
+  activities   Activity[]
 }
 
 model Feature {
@@ -48,6 +50,7 @@ model Feature {
   tags        String[]    @default([])
   rulesJson   Json?       // <--- این خط را اضافه کن
   order       Int         @default(0) // ترتیب نمایش
+  activities  Activity[]
 }
 
 model Background {
@@ -145,4 +148,29 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String   // CREATE, UPDATE, DELETE, IMPORT, EXPORT, etc.
+  action      String   // Specific action like "feature_created", "project_updated"
+  description String   // Human-readable description in Persian
+  metadata    Json?    // Additional data like old/new values, counts, etc.
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  featureId   String?
+  feature     Feature? @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  
+  // Indexes for better performance
+  @@index([userId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([featureId, createdAt])
+  @@index([type, createdAt])
 }

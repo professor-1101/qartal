@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from 'nanoid';
+import { ActivityLogger } from "@/lib/activity-logger";
 
 // GET /api/projects - Get all projects for the current user
 export async function GET(_request: NextRequest) {
@@ -136,6 +137,9 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Log project creation activity
+    await ActivityLogger.logProjectCreated(user.id, project.id, project.name);
 
     return NextResponse.json(project, { status: 201 });
 

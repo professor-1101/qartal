@@ -7,7 +7,7 @@ import { getPersianInitials, getFullName } from "@/lib/persian-utils";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, BookOpen, LogOut, Settings } from "lucide-react";
+import { Sparkles, BookOpen, LogOut, Settings, Activity } from "lucide-react";
 import { useI18n } from "@/i18n/provider";
 import { useSession, signOut } from "next-auth/react";
 
@@ -81,6 +81,21 @@ export function SidebarContent({ navItems, onItemClick }: SidebarContentProps) {
             >
               <BookOpen className="h-4 w-4" />
               <span>{t("sidebar.docs")}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <Link
+              href="/activities"
+              className={cn(
+                "flex items-center gap-2 transition-all duration-200 text-[14px] text-right px-3 py-2 rounded-md hover:bg-accent/50",
+                pathname === "/activities" ? "bg-accent text-accent-foreground font-medium" : "text-[oklch(.145_0_0)]"
+              )}
+              onClick={onItemClick}
+            >
+              <Activity className="h-4 w-4" />
+              <span>{t("sidebar.activities")}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

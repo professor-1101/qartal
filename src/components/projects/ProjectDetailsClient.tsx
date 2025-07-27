@@ -12,6 +12,7 @@ import { Plus, Edit,  FileCode, CheckSquare, Layers, EllipsisVertical, Share2, T
 import { Feature, Project } from '@/types/index';
 import { CreateFeatureSheet } from "@/components/projects/create-feature-sheet";
 import { ShareProjectDialog } from "@/components/projects/share-project-dialog";
+import { ActivityHistory } from "@/components/activities/activity-history";
 import { 
     createGherkinFromFeature, 
     createProjectInfo,
@@ -102,12 +103,18 @@ export default function ProjectDetailsClient({ project, features: initialFeature
       if (active.id !== over.id) {
         const oldIndex = features.findIndex(f => f.id === active.id);
         const newIndex = features.findIndex(f => f.id === over.id);
+        const movedFeature = features[oldIndex];
         const newFeatures = arrayMove(features, oldIndex, newIndex).map((f, idx) => ({ ...f, order: idx + 1 }));
         setFeatures(newFeatures);
         await fetch(`/api/projects/${project.id}/features/reorder`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ features: newFeatures.map(f => ({ id: f.id, order: f.order })) })
+          body: JSON.stringify({ 
+            features: newFeatures.map(f => ({ id: f.id, order: f.order })),
+            movedFeatureId: movedFeature.id,
+            oldPosition: oldIndex + 1,
+            newPosition: newIndex + 1
+          })
         });
       }
     };
@@ -368,6 +375,14 @@ export default function ProjectDetailsClient({ project, features: initialFeature
                     </Button>
                 </div>
             )}
+
+            {/* Activity History */}
+            <div className="mt-8">
+                <ActivityHistory 
+                    projectId={project.id}
+                    title="تاریخچه فعالیت‌های پروژه"
+                />
+            </div>
 
             {/* Dialogs that are controlled by this component */}
             <CreateFeatureSheet

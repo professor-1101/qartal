@@ -94,6 +94,7 @@ export const fa = {
         pages: "صفحات",
         changelog: "تاریخچه تغییرات",
         docs: "مستندات",
+        activities: "تاریخچه فعالیت‌ها",
         profile: "پروفایل",
         logout: "خروج",
         dashboard: "داشبورد",
@@ -279,6 +280,40 @@ export const fa = {
             createNewScenario: "ایجاد سناریو جدید",
             header: {
                 editScenario: "ویرایش سناریو"
+            }
+        },
+        activities: {
+            title: "تاریخچه فعالیت‌ها",
+            noActivities: "هیچ فعالیتی یافت نشد",
+            filterAll: "همه",
+            filterCreate: "ایجاد",
+            filterUpdate: "بروزرسانی",
+            filterDelete: "حذف",
+            filterImport: "ایمپورت",
+            filterExport: "دانلود",
+            filterReorder: "تغییر ترتیب",
+            filterLogin: "ورود",
+            filterLogout: "خروج",
+            filterType: "نوع فعالیت",
+            filterDate: "تاریخ",
+            filterToday: "امروز",
+            filterThisWeek: "این هفته",
+            filterThisMonth: "این ماه",
+            searchPlaceholder: "جستجو در فعالیت‌ها...",
+            projectActivities: "تاریخچه فعالیت‌های پروژه",
+            userActivities: "تاریخچه فعالیت‌های کاربر",
+            previous: "قبلی",
+            next: "بعدی",
+            pageInfo: "صفحه {current} از {total}",
+            activityTypes: {
+                CREATE: "ایجاد",
+                UPDATE: "بروزرسانی",
+                DELETE: "حذف",
+                IMPORT: "ایمپورت",
+                EXPORT: "دانلود",
+                REORDER: "تغییر ترتیب",
+                LOGIN: "ورود",
+                LOGOUT: "خروج"
             }
         }
     },

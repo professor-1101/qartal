@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
+import { ActivityLogger } from "@/lib/activity-logger";
 
 // DELETE /api/projects/[projectId]/features/[featureId]
 export async function DELETE(
@@ -40,6 +41,9 @@ export async function DELETE(
             data: { updatedAt: new Date() }
         });
     });
+
+    // Log feature deletion activity
+    await ActivityLogger.logFeatureDeleted(user.id, projectId, featureId, feature.name);
     
     return NextResponse.json({ message: "Feature deleted successfully" });
   } catch (error) {
@@ -203,7 +207,15 @@ export async function PUT(
         return updatedFeature;
     });
 
-        let rules;
+    // Log feature update activity
+    const changes = {
+        scenarios: data.scenarios?.length || 0,
+        background: data.background?.steps?.length || 0,
+        totalSteps: (data.scenarios?.reduce((acc: any, s: any) => acc + (s.steps?.length || 0), 0) || 0) + (data.background?.steps?.length || 0)
+    };
+    await ActivityLogger.logFeatureUpdated(user.id, projectId, featureId, result.name, changes);
+
+    let rules;
     if (result.rulesJson) {
         try { rules = JSON.parse(result.rulesJson as any); } catch (e) { }
     }
