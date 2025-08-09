@@ -2,11 +2,13 @@
 
 import Sidebar from "@/components/layout/sidebar-ui";
 import { SiteHeader } from "@/components/layout/site-header";
+import { StatusIndicator } from "@/components/layout/status-indicator";
 import { SidebarProvider, useSidebarState } from "@/components/providers/sidebar-context";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { DirectionProvider } from "@radix-ui/react-direction";
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
     const { status } = useSession();
@@ -18,10 +20,13 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     }, [status, router]);
     return (
         <SidebarProvider>
-            <div className="flex min-h-screen w-full">
-                <Sidebar />
-                <SidebarContentWithHeader>{children}</SidebarContentWithHeader>
-            </div>
+            <DirectionProvider dir="rtl">
+                <div className="flex min-h-screen w-full">
+                    <Sidebar />
+                    <SidebarContentWithHeader>{children}</SidebarContentWithHeader>
+                    <StatusIndicator />
+                </div>
+            </DirectionProvider>
         </SidebarProvider>
     );
 }
@@ -34,7 +39,7 @@ function SidebarContentWithHeader({ children }: { children: React.ReactNode }) {
             isOpen ? "lg:mr-64" : "lg:mr-0"
         )}>
             <SiteHeader />
-            <main className="flex-1 w-full px-4 py-6">{children}</main>
+            <main className="flex-1 w-full px-6 py-6">{children}</main>
         </div>
     );
 }

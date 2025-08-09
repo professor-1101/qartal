@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { ActivityLogger } from "@/lib/activity-logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,18 +29,29 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
+    // Create user with explicit active status
     const user = await prisma.user.create({
       data: {
         firstName,
         lastName,
         email,
         password: hashedPassword,
+        isActive: true, // Explicitly set as active
+        isSuper: false, // Explicitly set as regular user
       },
     });
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
+
+    // Log user registration activity
+    await ActivityLogger.log({
+      userId: user.id,
+      type: 'CREATE',
+      action: 'user_registered',
+      description: `کاربر ${user.email} ثبت نام کرد`,
+      metadata: { userEmail: user.email },
+    });
 
     return NextResponse.json(
       { 

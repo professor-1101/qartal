@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { ActivityLogger } from "@/lib/activity-logger";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -60,6 +61,9 @@ export async function PUT(request: NextRequest) {
         password: hashedNewPassword
       }
     });
+
+    // Log password change activity
+    await ActivityLogger.logPasswordChanged(user.id);
 
     return NextResponse.json({
       message: "Password updated successfully"

@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { GherkinEditor } from "@/components/features/gherkin-editor/gherkin-editor";
-import { Feature, Rule, Scenario, Step, Examples, Background } from "@/types/gherkin";
-import { toast } from "sonner";
+import { Feature, Rule } from "@/types/gherkin";
 import isEqual from "fast-deep-equal";
 import React from 'react';
+import { useAutoSave } from "@/components/providers/autosave-context";
+import { toast } from "sonner";
 
 // Update Scenario type to include keyword
 
@@ -52,77 +53,9 @@ interface ApiBackground {
     steps: ApiStep[];
 }
 
-function transformFeature(apiFeature: ApiFeature): Feature {
-    let rules: Rule[] = [];
-    if (apiFeature.rulesJson) {
-        try {
-            rules = typeof apiFeature.rulesJson === 'string'
-                ? JSON.parse(apiFeature.rulesJson)
-                : apiFeature.rulesJson;
-        } catch (error) {
-            console.error("Error parsing rules JSON:", error);
-            rules = [];
-        }
-    }
 
-    const scenarios: Scenario[] = (apiFeature.scenarios || []).map(apiScenario => {
-        const steps: Step[] = (apiScenario.steps || []).map(apiStep => ({
-            id: apiStep.id,
-            keyword: apiStep.keyword as Step["keyword"],
-            text: apiStep.text,
-            argument: apiStep.argument
-        }));
 
-        let examples: Examples | undefined;
-        if (apiScenario.examples && apiScenario.examples.length > 0) {
-            const firstExample = apiScenario.examples[0];
-            examples = {
-                id: firstExample.id,
-                headers: firstExample.header || [],
-                rows: (firstExample.body || []).map((row, index) => ({
-                    id: `row-${index}`,
-                    values: row || []
-                }))
-            };
-        }
-
-        return {
-            id: apiScenario.id,
-            name: apiScenario.name,
-            description: apiScenario.description || "",
-            type: apiScenario.type,
-            tags: apiScenario.tags || [],
-            steps,
-            examples
-        };
-    });
-
-    let background: Background | undefined;
-    if (apiFeature.background) {
-        background = {
-            id: apiFeature.background.id,
-            steps: (apiFeature.background.steps || []).map(apiStep => ({
-                id: apiStep.id,
-                keyword: apiStep.keyword as Step["keyword"],
-                text: apiStep.text,
-                argument: apiStep.argument
-            }))
-        };
-    }
-
-    return {
-        id: apiFeature.id,
-        name: apiFeature.name,
-        description: apiFeature.description || "",
-        tags: apiFeature.tags || [],
-        rules,
-        scenarios,
-        background,
-        order: (apiFeature as any).order || 0,
-    };
-}
-
-function toApiFeature(feature: Feature): any {
+function toApiFeature(feature: Feature): ApiFeature {
     const scenarios = (feature.scenarios || []).map(scenario => {
         const examples = scenario.examples ? [{
             id: scenario.examples.id,
@@ -133,23 +66,39 @@ function toApiFeature(feature: Feature): any {
         return {
             id: scenario.id,
             name: scenario.name,
-            description: scenario.description,
+            description: scenario.description || "",
             type: scenario.type,
             tags: scenario.tags || [],
-            steps: (scenario.steps || []),
+            steps: (scenario.steps || []).map(step => ({
+                id: step.id,
+                keyword: step.keyword,
+                text: step.text,
+                argument: step.dataTable || step.docString || null
+            })),
             examples,
             keyword: scenario.type === 'scenario-outline' ? "Scenario Outline" : "Scenario"
         };
     });
 
     return {
-        ...feature,
-        rulesJson: JSON.stringify(feature.rules),
+        id: feature.id,
+        name: feature.name,
+        description: feature.description || "",
+        tags: feature.tags || [],
+        rulesJson: feature.rules || [],
         scenarios,
         background: feature.background ? {
             id: feature.background.id,
-            steps: (feature.background.steps || [])
-        } : null
+            steps: (feature.background.steps || []).map(step => ({
+                id: step.id,
+                keyword: step.keyword,
+                text: step.text,
+                argument: step.dataTable || step.docString || null
+            }))
+        } : null,
+        slang: "gherkin",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
 }
 
@@ -207,31 +156,6 @@ function normalizeFeature(feature: Feature): any {
     };
 }
 
-// تابع diff ساده برای مقایسه objectها و نمایش تفاوت‌ها
-function diffObjects(obj1: any, obj2: any, path = ""): string[] {
-    const diffs: string[] = [];
-    const allKeys = new Set([...Object.keys(obj1 || {}), ...Object.keys(obj2 || {})]);
-    for (const key of Array.from(allKeys)) {
-        const val1 = obj1 ? obj1[key] : undefined;
-        const val2 = obj2 ? obj2[key] : undefined;
-        const currentPath = path ? `${path}.${key}` : key;
-        if (Array.isArray(val1) && Array.isArray(val2)) {
-            if (val1.length !== val2.length) {
-                diffs.push(`${currentPath}: length ${val1.length} !== ${val2.length}`);
-            } else {
-                for (let i = 0; i < val1.length; i++) {
-                    diffs.push(...diffObjects(val1[i], val2[i], `${currentPath}[${i}]`));
-                }
-            }
-        } else if (typeof val1 === "object" && typeof val2 === "object" && val1 && val2) {
-            diffs.push(...diffObjects(val1, val2, currentPath));
-        } else if (val1 !== val2) {
-            diffs.push(`${currentPath}: ${JSON.stringify(val1)} !== ${JSON.stringify(val2)}`);
-        }
-    }
-    return diffs;
-}
-
 function isFeatureEmpty(feature: Feature): boolean {
     return (
         (!feature.name || feature.name.trim() === "") &&
@@ -272,66 +196,103 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
 export default function FeatureEditClient({ feature: initialFeature, project }: FeatureEditClientProps) {
     const [feature, setFeature] = useState<Feature>(initialFeature);
     const [dirty, setDirty] = useState(false);
+    const [lastSavedFeature, setLastSavedFeature] = useState<Feature>(initialFeature);
+    const { scheduleAutoSave, cancelAutoSave, isAutoSaveEnabled, setOnSaveSuccess } = useAutoSave();
 
     // ردیابی تغییرات dirty
     useEffect(() => {
         const normFeature = normalizeFeature(feature);
-        const normInitial = normalizeFeature(initialFeature);
+        const normLastSaved = normalizeFeature(lastSavedFeature);
         // Special case: if both are empty, never dirty
-        if (isFeatureEmpty(normFeature) && isFeatureEmpty(normInitial)) {
+        if (isFeatureEmpty(normFeature) && isFeatureEmpty(normLastSaved)) {
             setDirty(false);
             return;
         }
-        const dirtyNow = !isEqual(normFeature, normInitial);
+        const dirtyNow = !isEqual(normFeature, normLastSaved);
         setDirty(dirtyNow);
-        if (dirtyNow) {
-            // eslint-disable-next-line no-console
-            const diffs = diffObjects(normFeature, normInitial);
-            if (diffs.length === 0) {
-                console.log('[DIRTY DEBUG] تفاوتی پیدا نشد ولی dirty=true!');
-            } else {
-                console.log('[DIRTY DEBUG] لیست دقیق تغییرات (unsaved changes):');
-                diffs.forEach((d, i) => {
-                    console.log(`  ${i + 1}. ${d}`);
-                });
-            }
-            // برای بررسی بیشتر، آبجکت کامل را هم چاپ کن
-            console.log('[DIRTY DEBUG] feature فعلی:', normFeature);
-            console.log('[DIRTY DEBUG] feature اولیه:', normInitial);
+        
+        // Auto-save when feature changes and auto-save is enabled
+        if (dirtyNow && isAutoSaveEnabled) {
+            const apiFeature = toApiFeature(normFeature);
+            scheduleAutoSave(feature.id, 'feature', apiFeature, project.id);
+        } else if (!dirtyNow) {
+            // Cancel auto-save if no changes
+            cancelAutoSave(feature.id);
         }
-    }, [feature, initialFeature]);
+        
 
-    // هشدار خروج در صورت تغییرات ذخیره‌نشده
+    }, [feature, lastSavedFeature, isAutoSaveEnabled, scheduleAutoSave, cancelAutoSave, project.id]);
+
+    // هشدار خروج در صورت تغییرات ذخیره‌نشده (فقط زمانی که auto-save غیرفعال است)
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (dirty) {
+            if (dirty && !isAutoSaveEnabled) {
                 e.preventDefault();
                 e.returnValue = '';
             }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [dirty]);
+    }, [dirty, isAutoSaveEnabled]);
 
-    const handleFeatureChange = async (updatedFeature: Feature) => {
+    // Set up auto-save success callback
+    useEffect(() => {
+        const handleAutoSaveSuccess = (projectId: string) => {
+            if (projectId === project.id) {
+                // Update last saved feature to current feature
+                setLastSavedFeature(feature);
+                setDirty(false);
+            }
+        };
+        
+        setOnSaveSuccess(handleAutoSaveSuccess);
+        
+        return () => {
+            setOnSaveSuccess(() => {});
+        };
+    }, [project.id, feature, setOnSaveSuccess]);
+
+    // Cleanup auto-save on unmount
+    useEffect(() => {
+        return () => {
+            cancelAutoSave(feature.id);
+        };
+    }, [cancelAutoSave, feature.id]);
+
+    const handleFeatureChange = (updatedFeature: Feature) => {
+        // Update the local state - dirty will be handled by useEffect
+        setFeature(updatedFeature);
+    };
+
+    const handleManualSave = async () => {
         try {
-            const apiFeature = toApiFeature(updatedFeature);
-
+            const normFeature = normalizeFeature(feature);
+            const apiFeature = toApiFeature(normFeature);
+            
             const response = await fetch(`/api/projects/${project.id}/features/${feature.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify(apiFeature),
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to save feature');
+            if (response.ok) {
+                setLastSavedFeature(feature);
+                setDirty(false);
+                // Cancel any pending auto-save
+                cancelAutoSave(feature.id);
+                toast.success("تغییرات با موفقیت ذخیره شد", { duration: 2000 });
+            } else if (response.status === 423) {
+                const errorData = await response.json();
+                toast.warning(errorData.error || "پروژه قفل است", { duration: 4000 });
+            } else {
+                const errorData = await response.json();
+                toast.error(errorData.error || "خطا در ذخیره", { duration: 3000 });
             }
-
-            const savedFeature: ApiFeature = await response.json();
-            setFeature(transformFeature(savedFeature));
-            toast.success("ویژگی با موفقیت ذخیره شد!");
         } catch (error) {
-            toast.error("ذخیره ویژگی با خطا مواجه شد.");
+            console.error('Manual save failed:', error);
+            toast.error("خطا در اتصال به سرور", { duration: 3000 });
         }
     };
 
@@ -339,7 +300,9 @@ export default function FeatureEditClient({ feature: initialFeature, project }: 
         <ErrorBoundary>
             <GherkinEditor
                 feature={feature}
+                dirty={dirty}
                 onFeatureChange={handleFeatureChange}
+                onManualSave={handleManualSave}
             />
         </ErrorBoundary>
     );

@@ -93,7 +93,7 @@ export function GherkinPreview({ feature }: { feature: Feature }) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1200);
         } catch (err) {
-          console.error('Fallback copy failed:', err);
+          console.error('خطا در کپی کردن:', err);
           // Show error to user
           alert('کپی کردن با خطا مواجه شد. لطفاً متن را دستی کپی کنید.');
         } finally {
@@ -101,7 +101,7 @@ export function GherkinPreview({ feature }: { feature: Feature }) {
         }
       }
     } catch (error) {
-      console.error('Copy failed:', error);
+      console.error('خطا در کپی کردن:', error);
       // Show error to user
       alert('کپی کردن با خطا مواجه شد. لطفاً متن را دستی کپی کنید.');
     }

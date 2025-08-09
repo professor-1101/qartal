@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export default function ProjectsContent() {
     const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
     // Fetch projects from API
-    const fetchProjects = async () => {
+    const fetchProjects = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -66,7 +66,7 @@ export default function ProjectsContent() {
                     router.push("/sign-in");
                     return;
                 }
-                throw new Error("Failed to fetch projects");
+                throw new Error("خطا در دریافت پروژه‌ها");
             }
 
             const data = await response.json();
@@ -77,11 +77,11 @@ export default function ProjectsContent() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [status, router]);
 
     useEffect(() => {
         fetchProjects();
-    }, [status]);
+    }, [fetchProjects]);
 
     const handleCreateProject = async (projectData: { name: string; description?: string }) => {
         try {
@@ -94,7 +94,7 @@ export default function ProjectsContent() {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to create project");
+                throw new Error("خطا در ایجاد پروژه");
             }
 
             const newProject = await response.json();
@@ -112,7 +112,7 @@ export default function ProjectsContent() {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to delete project");
+                throw new Error("خطا در حذف پروژه");
             }
 
             setProjects(prev => prev.filter(p => p.id !== projectId));
@@ -134,7 +134,7 @@ export default function ProjectsContent() {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to update project");
+                throw new Error("خطا در به‌روزرسانی پروژه");
             }
 
             // Instead of using the response, fetch fresh data
@@ -164,7 +164,7 @@ export default function ProjectsContent() {
                 day: 'numeric'
             });
         } catch (error) {
-            console.log('Error formatting date:', error);
+            console.log('خطا در قالب‌بندی تاریخ:', error);
             return 'تاریخ نامعتبر';
         }
     };

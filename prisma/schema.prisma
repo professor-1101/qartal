@@ -18,6 +18,29 @@ model User {
   accounts      Account[]
   projects      Project[]
   sessions      Session[]
+  activities    Activity[]
+  isSuper       Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  autoSave      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Azure DevOps Integration Settings
+  azureApiUrl   String?
+  azureTfsUrl   String?
+  azureToken    String?
+
+  // Versioning & Approval System
+  projectVersions      ProjectVersion[]
+  approvedVersions     ProjectVersion[] @relation("ApprovedBy")
+  rejectedVersions     ProjectVersion[] @relation("RejectedBy")
+  versionApprovals     VersionApproval[]
+
+  // Azure Sync Jobs
+  azureSyncJobs AzureSyncJob[]
+  
+  // Notifications
+  notifications Notification[]
 }
 
 model Project {
@@ -28,10 +51,21 @@ model Project {
   updatedAt    DateTime      @updatedAt
   userId       String
   status       String        @default("active")
+  isLocked     Boolean       @default(false) // قفل برای انتشار نسخه
   features     Feature[]
   gherkinFiles GherkinFile[]
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   slang        String        @unique
+  activities   Activity[]
+  
+  // Versioning
+  versions     ProjectVersion[]
+  
+  // Azure Sync Jobs
+  azureSyncJobs AzureSyncJob[]
+  
+  // Notifications
+  notifications Notification[]
 }
 
 model Feature {
@@ -48,6 +82,7 @@ model Feature {
   tags        String[]    @default([])
   rulesJson   Json?       // <--- این خط را اضافه کن
   order       Int         @default(0) // ترتیب نمایش
+  activities  Activity[]
 }
 
 model Background {
@@ -145,4 +180,174 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String   // CREATE, UPDATE, DELETE, IMPORT, EXPORT, etc.
+  action      String   // Specific action like "feature_created", "project_updated"
+  description String   // Human-readable description in Persian
+  metadata    Json?    // Additional data like old/new values, counts, etc.
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  featureId   String?
+  feature     Feature? @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  
+  // Indexes for better performance
+  @@index([userId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([featureId, createdAt])
+  @@index([type, createdAt])
+}
+
+model ProjectVersion {
+  id                String    @id @default(cuid())
+  version           String    // semantic version like "1.0.0"
+  major             Int
+  minor             Int
+  patch             Int
+  status            VersionStatus @default(PENDING)
+  releaseNotes      String?   // auto-generated release notes
+  changesSummary    Json?     // structured changes data
+  snapshotData      Json      // full project snapshot at version time
+  
+  // Relations
+  projectId         String
+  project           Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdById       String
+  createdBy         User      @relation(fields: [createdById], references: [id])
+  
+  approvedById      String?
+  approvedBy        User?     @relation("ApprovedBy", fields: [approvedById], references: [id])
+  
+  rejectedById      String?
+  rejectedBy        User?     @relation("RejectedBy", fields: [rejectedById], references: [id])
+  
+  approvals         VersionApproval[]
+  notifications     Notification[]
+  
+  createdAt         DateTime  @default(now())
+  approvedAt        DateTime?
+  rejectedAt        DateTime?
+  
+  @@unique([projectId, version])
+  @@index([projectId, status])
+}
+
+model VersionApproval {
+  id                String    @id @default(cuid())
+  status            ApprovalStatus
+  message           String?   // rejection reason or approval note
+  
+  // Relations
+  versionId         String
+  version           ProjectVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  
+  reviewerId        String
+  reviewer          User      @relation(fields: [reviewerId], references: [id])
+  
+  createdAt         DateTime  @default(now())
+  
+  @@unique([versionId, reviewerId])
+}
+
+enum VersionStatus {
+  PENDING           // Waiting for approval
+  APPROVED          // Approved and released
+  REJECTED          // Rejected
+  DRAFT             // Work in progress
+}
+
+enum ApprovalStatus {
+  APPROVED
+  REJECTED
+  PENDING
+}
+
+model AzureSyncJob {
+  id              String    @id @default(cuid())
+  taskId          String?   // Azure task ID from async import
+  status          AzureSyncStatus @default(PENDING)
+  progress        Int       @default(0) // 0-100
+  
+  // Request data
+  projectName     String
+  version         String    @default("4.0.0")
+  
+  // Response data
+  result          Json?     // Final result when completed
+  error           String?   // Error message if failed
+  logs            Json?     // Array of log messages
+  
+  // Azure results (when completed successfully)
+  testPlanId      String?
+  testSuiteId     String?
+  allSuiteIds     Json?     // Array of suite IDs
+  createdCount    Int?      // Number of test cases created
+  
+  // Relations
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId       String
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
+  
+  @@index([userId, status])
+  @@index([projectId, status])
+  @@index([taskId])
+}
+
+enum AzureSyncStatus {
+  PENDING     // Not started yet
+  STARTED     // Azure task created
+  RUNNING     // Azure task in progress
+  COMPLETED   // Successfully completed
+  FAILED      // Failed with error
+  TIMEOUT     // Took too long to complete
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean   @default(false)
+  forQA       Boolean   @default(false) // For QA team notifications
+  
+  // Relations
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  versionId   String?
+  version     ProjectVersion? @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId, isRead])
+  @@index([forQA, isRead])
+  @@index([projectId])
+}
+
+enum NotificationType {
+  PROJECT_SUBMITTED   // Project submitted for QA review
+  PROJECT_APPROVED    // Project approved by QA
+  PROJECT_REJECTED    // Project rejected by QA
+  VERSION_READY       // New version available
+  AZURE_SYNC_COMPLETED // Azure sync completed
+  AZURE_SYNC_FAILED   // Azure sync failed
 }

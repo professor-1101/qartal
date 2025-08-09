@@ -1,15 +1,17 @@
 import "./globals.css";
+import "./fonts.module.css";
 import { I18nProvider } from "@/i18n";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { OfflineProvider } from "@/components/providers/offline-context";
+import { AutoSaveProvider } from "@/components/providers/autosave-context";
 import { ReactNode } from "react";
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: 'کارتال BDD Test Design',
   description: 'پلتفرم ویرایش تست BDD',
   manifest: '/manifest.json',
-  themeColor: '#2563eb',
   icons: {
     icon: [
       { url: '/AppImages/ios/32.png', sizes: '32x32', type: 'image/png' },
@@ -22,13 +24,21 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: '#2563eb',
+};
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl">
       <body>
         <I18nProvider>
           <AuthProvider>
-            {children}
+            <OfflineProvider>
+              <AutoSaveProvider>
+                {children}
+              </AutoSaveProvider>
+            </OfflineProvider>
           </AuthProvider>
         </I18nProvider>
         <Toaster />

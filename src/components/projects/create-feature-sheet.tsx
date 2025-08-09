@@ -43,7 +43,7 @@ export function CreateFeatureSheet({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: title.trim(), description }),
       });
-      if (!response.ok) throw new Error('Failed to create feature');
+              if (!response.ok) throw new Error('خطا در ایجاد ویژگی');
       const newFeature = await response.json();
       onFeatureCreated(newFeature);
       onOpenChange(false);
@@ -86,10 +86,20 @@ export function CreateFeatureSheet({
               id="description"
               className="p-2"
               value={description}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                const newValue = e.target.value;
+                const wordCount = newValue.trim() ? newValue.trim().split(/\s+/).length : 0;
+                if (wordCount <= 150) {
+                  setDescription(newValue);
+                }
+              }}
               placeholder={t('features.createSheet.form.descriptionPlaceholder') || 'توضیح کوتاهی برای ویژگی وارد کنید'}
               aria-label={t('features.createSheet.form.description') || 'توضیحات ویژگی'}
             />
+            <div className="flex justify-between items-center text-xs text-muted-foreground">
+              <span>تعداد کلمات: {description.trim() ? description.trim().split(/\s+/).length : 0}</span>
+              <span>{description.trim() ? description.trim().split(/\s+/).length : 0}/150</span>
+            </div>
           </div>
         </div>
         <SheetFooter className="gap-3">

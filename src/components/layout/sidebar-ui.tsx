@@ -6,17 +6,18 @@ import { useI18n } from "@/i18n";
 import {
     Folder,
     Settings,
- 
     X,
 } from "lucide-react";
 import { useSidebarState } from "@/components/providers/sidebar-context";
 import { SidebarContent, SidebarFooter } from "./sidebar-content";
+
 
 const SIDEBAR_WIDTH = 256; // 16rem
 
 export default function Sidebar() {
     const { t } = useI18n();
     const { isOpen, toggle } = useSidebarState();
+
 
     const navItems = [
         {

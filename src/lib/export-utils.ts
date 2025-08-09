@@ -203,31 +203,45 @@ export const createBeautifulHTML = (project: import('@/types/entities').ProjectW
             margin-bottom: 16px;
         }
         
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+        
         table {
             width: 100%;
+            min-width: 600px;
             border-collapse: collapse;
-            margin-top: 12px;
             font-size: 0.75rem;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
         }
         
         th, td {
             border: 1px solid #e2e8f0;
             padding: 12px 16px;
             text-align: right;
+            white-space: nowrap;
         }
         
         th {
             background: #f1f5f9;
             font-weight: 600;
             color: #374151;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         
         td {
             background: #ffffff;
             color: #374151;
+        }
+        
+        tr:hover td {
+            background: #f8fafc;
         }
         
         .page-break {
@@ -309,20 +323,22 @@ export const createBeautifulHTML = (project: import('@/types/entities').ProjectW
                                         ${(scenario.examples && Array.isArray(scenario.examples.headers) && scenario.examples.headers.length > 0) ? `
                                             <div class="examples">
                                                 <h4>مثال‌ها:</h4>
-                                                <table>
-                                                    <thead>
-                                                        <tr>
-                                                            ${(Array.isArray(scenario.examples.headers) ? scenario.examples.headers : []).map(header => `<th>${header}</th>`).join('')}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        ${(Array.isArray(scenario.examples.rows) ? scenario.examples.rows : []).map(row => `
+                                                <div class="table-container">
+                                                    <table>
+                                                        <thead>
                                                             <tr>
-                                                                ${(Array.isArray(row.values) ? row.values : []).map(value => `<td>${value}</td>`).join('')}
+                                                                ${(Array.isArray(scenario.examples.headers) ? scenario.examples.headers : []).map(header => `<th>${header}</th>`).join('')}
                                                             </tr>
-                                                        `).join('')}
-                                                    </tbody>
-                                                </table>
+                                                        </thead>
+                                                        <tbody>
+                                                            ${(Array.isArray(scenario.examples.rows) ? scenario.examples.rows : []).map(row => `
+                                                                <tr>
+                                                                    ${(Array.isArray(row.values) ? row.values : []).map(value => `<td>${value}</td>`).join('')}
+                                                                </tr>
+                                                            `).join('')}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         ` : ''}
                                     </div>
@@ -342,20 +358,22 @@ export const createBeautifulHTML = (project: import('@/types/entities').ProjectW
                                 ${(scenario.examples && Array.isArray(scenario.examples.headers) && scenario.examples.headers.length > 0) ? `
                                     <div class="examples">
                                         <h4>مثال‌ها:</h4>
-                                        <table>
-                                            <thead>
-                                                <tr>
-                                                    ${(Array.isArray(scenario.examples.headers) ? scenario.examples.headers : []).map(header => `<th>${header}</th>`).join('')}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                ${(Array.isArray(scenario.examples.rows) ? scenario.examples.rows : []).map(row => `
+                                        <div class="table-container">
+                                            <table>
+                                                <thead>
                                                     <tr>
-                                                        ${(Array.isArray(row.values) ? row.values : []).map(value => `<td>${value}</td>`).join('')}
+                                                        ${(Array.isArray(scenario.examples.headers) ? scenario.examples.headers : []).map(header => `<th>${header}</th>`).join('')}
                                                     </tr>
-                                                `).join('')}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody>
+                                                    ${(Array.isArray(scenario.examples.rows) ? scenario.examples.rows : []).map(row => `
+                                                        <tr>
+                                                            ${(Array.isArray(row.values) ? row.values : []).map(value => `<td>${value}</td>`).join('')}
+                                                        </tr>
+                                                    `).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 ` : ''}
                             </div>

@@ -3,7 +3,7 @@ import ProjectDetailsClient from '@/components/projects/ProjectDetailsClient';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/config';
 import { getServerSession } from 'next-auth';
-import { Project } from '@/types';
+
 import { Feature, StepType } from '@/types/gherkin';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +19,10 @@ export default async function ProjectPage({ params }: { params: { projectId: str
 
     const user = await prisma.user.findUnique({
         where: { email: userEmail },
-        select: { id: true },
+        select: { 
+            id: true,
+            isSuper: true 
+        },
     });
 
     if (!user) {
@@ -27,23 +30,61 @@ export default async function ProjectPage({ params }: { params: { projectId: str
         return notFound();
     }
 
-    // --- The Correct Way to Fetch by ID and Ownership ---
-    // Use `findFirst` to apply multiple `where` conditions.
-    const project = await prisma.project.findFirst({
-        where: {
-            id: params.projectId,
-            userId: user.id, // Security: Ensures the project belongs to the current user.
-        },
-        include: {
-            user: {
-                select: {
-                    firstName: true,
-                    lastName: true,
-                    email: true
+    // --- Fetch Project with Ownership Check ---
+    let project;
+    
+    if (user.isSuper) {
+        // Super users can view any project
+        project = await prisma.project.findUnique({
+            where: {
+                id: params.projectId,
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                createdAt: true,
+                updatedAt: true,
+                userId: true,
+                status: true,
+                isLocked: true,
+                slang: true,
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
                 }
             }
-        }
-    });
+        });
+    } else {
+        // Regular users can only view their own projects
+        project = await prisma.project.findFirst({
+            where: {
+                id: params.projectId,
+                userId: user.id, // Security: Ensures the project belongs to the current user.
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                createdAt: true,
+                updatedAt: true,
+                userId: true,
+                status: true,
+                isLocked: true,
+                slang: true,
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                }
+            }
+        });
+    }
 
     // If no project is found, it's a 404 for this user.
     if (!project) {
@@ -70,17 +111,20 @@ export default async function ProjectPage({ params }: { params: { projectId: str
     });
 
     // Transform data for the client component
-    const transformedProject: Project = {
+    const transformedProject = {
         id: project.id,
         name: project.name,
         description: project.description ?? "",
-        features: featuresFromDb.map((f: any) => f.id),
         createdAt: project.createdAt.toISOString(),
         updatedAt: project.updatedAt.toISOString(),
-        status: project.status as "active" | "archived" | "draft",
-        authorName: (project.user?.firstName && project.user?.lastName)
-            ? `${project.user.firstName} ${project.user.lastName}`
-            : (project.user?.firstName || project.user?.lastName || project.user?.email || "بدون نام")
+        slang: project.slang,
+        isLocked: project.isLocked,
+        user: {
+            id: (project.user as any)?.id || '',
+            firstName: project.user?.firstName || undefined,
+            lastName: project.user?.lastName || undefined,
+            email: project.user?.email || ''
+        }
     };
 
     const transformedFeatures: Feature[] = featuresFromDb.map((feature: any): Feature => ({
@@ -121,6 +165,6 @@ export default async function ProjectPage({ params }: { params: { projectId: str
     }));
 
     return (
-        <ProjectDetailsClient project={transformedProject} features={transformedFeatures} />
+        <ProjectDetailsClient project={transformedProject as any} features={transformedFeatures} />
     );
 }

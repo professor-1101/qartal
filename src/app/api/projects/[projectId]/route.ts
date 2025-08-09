@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
+import { ActivityLogger } from "@/lib/activity-logger";
 
 // GET /api/projects/[projectId] - Get a specific project
 export async function GET(
@@ -112,6 +113,11 @@ export async function PUT(
             );
         }
 
+        // Track changes for activity logging
+        const changes: any = {};
+        if (name !== project.name) changes.name = { old: project.name, new: name };
+        if (description !== project.description) changes.description = { old: project.description, new: description };
+
         const updatedProject = await prisma.project.update({
             where: { id: projectId },
             data: {
@@ -129,6 +135,11 @@ export async function PUT(
                 }
             }
         });
+
+        // Log project update activity if there were changes
+        if (Object.keys(changes).length > 0) {
+          await ActivityLogger.logProjectUpdated(user.id, projectId, updatedProject.name, changes);
+        }
 
         return NextResponse.json(updatedProject);
     } catch (error) {
@@ -180,6 +191,17 @@ export async function DELETE(
                 { status: 404 }
             );
         }
+
+        // Log project deletion activity (store deletedProjectId in metadata only)
+        await prisma.activity.create({
+          data: {
+            userId: user.id,
+            type: 'DELETE',
+            action: 'project_deleted',
+            description: `پروژه "${project.name}" حذف شد`,
+            metadata: { projectName: project.name, deletedProjectId: projectId }
+          }
+        });
 
         await prisma.project.delete({
             where: { id: projectId }

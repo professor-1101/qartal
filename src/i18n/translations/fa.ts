@@ -94,8 +94,15 @@ export const fa = {
         pages: "صفحات",
         changelog: "تاریخچه تغییرات",
         docs: "مستندات",
+        activities: "فعالیت‌های من",
         profile: "پروفایل",
-        logout: "خروج",
+        admin: "مدیریت",
+        adminUsers: "مدیریت کاربران",
+        adminProjects: "مدیریت پروژه‌ها",
+        adminActivities: "گزارش کل فعالیت‌ها",
+        logout: 'خروج از سیستم',
+        signOut: 'خروج از سیستم',
+        userEmail: 'ایمیل کاربر',
         dashboard: "داشبورد",
         lifecycle: "چرخه عمر",
         analytics: "تحلیل‌ها",
@@ -104,11 +111,10 @@ export const fa = {
         settings: "تنظیمات",
         getHelp: "دریافت راهنما",
         search: "جستجو",
-        companyName: "شرکت نمونه",
-        companySlogan: "راهکارهای نرم‌افزاری با کیفیت",
-        userName: "جان دو",
-        userEmail: "john@example.com",
-        userRole: "مدیر",
+        companyName: "کارتال",
+        companySlogan: "ابزار مدیریت تست‌های BDD",
+        userName: "کاربر نمونه",
+        userRole: "کاربر",
         subscribeTitle: "عضویت در خبرنامه",
         subscribeDescription: "آخرین به‌روزرسانی‌ها و اخبار را دریافت کنید.",
         emailPlaceholder: "ایمیل شما",
@@ -265,6 +271,7 @@ export const fa = {
         newProject: "پروژه جدید",
         createProject: "ایجاد پروژه",
         editProject: "ویرایش پروژه",
+        update: "بروزرسانی",
         emptyState: {
             title: "پروژه‌ای یافت نشد!",
             description: "برای شروع، پروژه جدیدی ایجاد کنید.",
@@ -279,7 +286,9 @@ export const fa = {
             header: {
                 editScenario: "ویرایش سناریو"
             }
-        }
+        },
+    
+        
     },
     features: {
         "title": "ویژگی‌ها",
@@ -414,5 +423,58 @@ export const fa = {
         fixes: "رفع خطاها",
         breaking: "تغییرات شکستن سازگاری",
         latest: "آخرین"
+    },
+    activities: {
+        title: 'تاریخچه فعالیت‌ها',
+        searchPlaceholder: 'جستجو در فعالیت‌ها...',
+        noActivities: 'فعالیتی یافت نشد',
+        filterTypeLabel: 'فیلتر بر اساس نوع',
+        filterDateLabel: 'فیلتر بر اساس تاریخ',
+        selectExactDate: 'انتخاب تاریخ دقیق',
+        previous: 'قبلی',
+        next: 'بعدی',
+        pageInfo: 'صفحه {current} از {total}',
+        
+        filterTypes: {
+          all: 'همه',
+          create: 'ایجاد',
+          update: 'به‌روزرسانی',
+          delete: 'حذف',
+          import: 'وارد کردن',
+          export: 'خارج کردن',
+          reorder: 'مرتب‌سازی مجدد',
+          login: 'ورود',
+          logout: 'خروج',
+        },
+        
+        dateFilters: {
+          all: 'همه تاریخ‌ها',
+          today: 'امروز',
+          week: 'این هفته',
+          month: 'این ماه',
+          exact: 'تاریخ دقیق',
+        },
+        
+        activityTypes: {
+          CREATE: 'ایجاد',
+          UPDATE: 'به‌روزرسانی',
+          DELETE: 'حذف',
+          IMPORT: 'وارد کردن',
+          EXPORT: 'خارج کردن',
+          REORDER: 'مرتب‌سازی مجدد',
+          LOGIN: 'ورود',
+          LOGOUT: 'خروج',
+        },
+        actions: {
+          profile_updated: 'بروزرسانی پروفایل',
+          password_changed: 'تغییر رمز عبور',
+          user_registered: 'ثبت نام کاربر'
+        }
+      },
+    admin: {
+      title: "داشبورد مدیریتی سوپر یوزر",
+      description: "در این بخش می‌توانید کاربران، پروژه‌ها و فعالیت‌ها را مدیریت کنید.",
+      noAccess: "دسترسی غیرمجاز",
+      onlySuperuser: "این بخش فقط برای سوپر یوزرها فعال است."
     }
 };

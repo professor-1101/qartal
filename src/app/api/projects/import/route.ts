@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from 'nanoid';
 import { deepNormalizeProject } from '@/lib/deepNormalize';
+import { ActivityLogger } from "@/lib/activity-logger";
 
 export async function POST(request: NextRequest) {
     try {
@@ -21,21 +22,23 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Project name is required" }, { status: 400 });
         }
 
-        // Always provide a unique slang
-        const slangValue = data.slang || (data.name ? data.name.replace(/\s+/g, '-').toLowerCase() : nanoid(6));
+        // SECURITY FIX: Always generate new unique ID and slang for imports
+        // This prevents hijacking existing projects by importing with same ID
+        const newProjectId = nanoid();
+        const baseSlang = data.name ? data.name.replace(/\s+/g, '-').toLowerCase() : 'imported-project';
+        let slangValue = baseSlang;
+        
+        // Ensure slang is unique
+        let counter = 1;
+        while (await prisma.project.findUnique({ where: { slang: slangValue } })) {
+            slangValue = `${baseSlang}-${counter}`;
+            counter++;
+        }
 
-        // Upsert project
-        const project = await prisma.project.upsert({
-            where: { id: data.id || "" },
-            update: {
-                name: data.name,
-                description: data.description,
-                userId: user.id,
-                status: data.status || "active",
-                slang: slangValue,
-            },
-            create: {
-                id: data.id,
+        // Always CREATE new project (never update existing ones for security)
+        const project = await prisma.project.create({
+            data: {
+                id: newProjectId,
                 name: data.name,
                 description: data.description,
                 userId: user.id,
@@ -136,7 +139,7 @@ export async function POST(request: NextRequest) {
                 // Create feature
                 await prisma.feature.create({
                     data: {
-                        id: f.id,
+                        id: nanoid(), // Generate new ID for security
                         name: f.name,
                         description: f.description,
                         tags: f.tags || [],
@@ -147,13 +150,13 @@ export async function POST(request: NextRequest) {
                         background: f.background
                             ? {
                                 create: {
-                                    id: f.background.id,
+                                    id: nanoid(),
                                     name: f.background.name,
                                     keyword: f.background.keyword,
                                     tags: f.background.tags || [],
                                     steps: {
                                         create: (f.background.steps || []).map((step: any) => ({
-                                            id: step.id,
+                                            id: nanoid(),
                                             keyword: step.keyword,
                                             text: step.text,
                                             argument: step.argument,
@@ -166,7 +169,7 @@ export async function POST(request: NextRequest) {
                         scenarios: f.scenarios
                             ? {
                                 create: f.scenarios.map((s: any) => ({
-                                    id: s.id,
+                                    id: nanoid(),
                                     name: s.name,
                                     description: s.description,
                                     type: s.type,
@@ -174,7 +177,7 @@ export async function POST(request: NextRequest) {
                                     tags: s.tags || [],
                                     steps: {
                                         create: (s.steps || []).map((step: any) => ({
-                                            id: step.id,
+                                            id: nanoid(),
                                             keyword: step.keyword,
                                             text: step.text,
                                             argument: step.argument,
@@ -183,7 +186,7 @@ export async function POST(request: NextRequest) {
                                     examples: s.examples
                                         ? {
                                             create: {
-                                                id: s.examples.id,
+                                                id: nanoid(),
                                                 name: s.examples.name,
                                                 description: s.examples.description,
                                                 tags: s.examples.tags || [],
@@ -212,6 +215,29 @@ export async function POST(request: NextRequest) {
                 },
             },
         });
+
+        // Create initial version using exportInfo if available, otherwise default to 1.0.0
+        const exportInfo = data.exportInfo;
+        const versionToCreate = exportInfo?.version || "1.0.0";
+        const [major, minor, patch] = versionToCreate.split('.').map(Number);
+        
+        await prisma.projectVersion.create({
+            data: {
+                projectId: project.id,
+                version: versionToCreate,
+                major: major || 1,
+                minor: minor || 0,
+                patch: patch || 0,
+                status: 'PENDING',
+                releaseNotes: exportInfo?.releaseNotes || `پروژه import شده با ${data.features?.length || 0} ویژگی`,
+                snapshotData: updatedProject as any,
+                createdById: user.id
+            }
+        });
+
+        // Log project import activity
+        await ActivityLogger.logProjectImported(user.id, project.id, project.name, data.features?.length || 0);
+
         return NextResponse.json(updatedProject);
     } catch (e: any) {
         console.error("Error importing project:", e, e?.meta || "");

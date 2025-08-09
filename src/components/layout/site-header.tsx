@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useI18n } from "@/i18n";
 
 import { Separator } from "@/components/ui/separator";
+import { NotificationBell } from "@/components/layout/notifications";
 import { useSidebarState } from "@/components/providers/sidebar-context";
 import { usePathname } from "next/navigation";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -17,7 +18,8 @@ export function SiteHeader() {
   const [projectName, setProjectName] = useState<string | null>(null);
   const [featureName, setFeatureName] = useState<string | null>(null);
 
-  const isDashboard = pathname.startsWith("/dashboard") || pathname.startsWith("/projects") || pathname.startsWith("/settings") || pathname.startsWith("/gherkin");
+  // This header is only used inside dashboard layout, so always render
+  const isDashboard = true;
 
   const segments = pathname.split("/").filter(Boolean);
   const breadcrumbMap: Record<string, string> = {
@@ -29,6 +31,15 @@ export function SiteHeader() {
     settings: t("breadcrumb.settings"),
     features: t("breadcrumb.features"),
     edit: t("breadcrumb.edit"),
+    qa: "نظارت و تایید",
+    view: "نمایش",
+    activities: "فعالیت‌ها",
+    language: "زبان",
+    "approved-versions": "نسخه‌های تایید شده",
+    "admin-users": "مدیریت کاربران",
+    "admin-projects": "مدیریت پروژه‌ها",
+    "admin-activities": "گزارش کل فعالیت‌ها",
+    admin: "مدیریت",
   };
 
   useEffect(() => {
@@ -66,24 +77,14 @@ export function SiteHeader() {
       label = featureName;
     }
 
-    // --- Breadcrumb logic for feature pages ---
-    // If on a feature view or edit page
+    // Adjust links for feature edit and view pages
     if (
       segments[0] === 'projects' &&
-      segments[2] === 'features' &&
-      (segments.length === 4 || (segments.length === 5 && segments[4] === 'edit'))
+      ((segments[2] === 'features' && (segments.length === 4 || (segments.length === 5 && segments[4] === 'edit'))) ||
+       segments[2] === 'view')
     ) {
-      // idx: 2 => 'features' breadcrumb, should link to project page
-      if (idx === 2) {
+      if (idx === 2 && segments[2] === 'features') {
         href = `/${segments[0]}/${segments[1]}`;
-      }
-      // idx: 3 => feature breadcrumb
-      if (idx === 3) {
-        if (segments[4] === 'edit') {
-          href = `/${segments[0]}/${segments[1]}/${segments[2]}/${segments[3]}/edit`;
-        } else {
-          href = `/${segments[0]}/${segments[1]}/${segments[2]}/${segments[3]}`;
-        }
       }
     }
 
@@ -132,6 +133,10 @@ export function SiteHeader() {
               ))}
             </BreadcrumbList>
           </Breadcrumb>
+          <div className="mr-auto pl-4 flex items-center gap-2" />
+          <div className="ml-auto pr-4">
+            <NotificationBell />
+          </div>
         </div>
       )}
     </header>

@@ -7,9 +7,10 @@ import { getPersianInitials, getFullName } from "@/lib/persian-utils";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, BookOpen, LogOut, Settings } from "lucide-react";
+import { Sparkles, BookOpen, LogOut, Settings, Activity, User, Folder, CheckCircle, Shield, BarChart3 } from "lucide-react";
 import { useI18n } from "@/i18n/provider";
 import { useSession, signOut } from "next-auth/react";
+import { useState } from "react";
 
 interface SidebarContentProps {
   navItems: Array<{
@@ -23,9 +24,11 @@ interface SidebarContentProps {
 export function SidebarContent({ navItems, onItemClick }: SidebarContentProps) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { data: session } = useSession();
 
   return (
     <div dir="rtl" className="px-2">
+      {/* Main Platform Section */}
       <div data-slot="sidebar-group-label" data-sidebar="group-label" className="text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-3 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 text-right">
         {t("sidebar.platform")}
       </div>
@@ -50,10 +53,30 @@ export function SidebarContent({ navItems, onItemClick }: SidebarContentProps) {
           </SidebarMenuItem>
         ))}
       </SidebarMenu>
-      <div data-slot="sidebar-group-label" data-sidebar="group-label" className="mt-6 text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-3 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 text-right">
+
+      {/* Divider */}
+      <div className="my-4 border-t border-border/50" />
+
+      {/* User Pages Section */}
+      <div data-slot="sidebar-group-label" data-sidebar="group-label" className="text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-3 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 text-right">
         {t("sidebar.pages")}
       </div>
       <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <Link
+              href="/activities"
+              className={cn(
+                "flex items-center gap-2 transition-all duration-200 text-[14px] text-right px-3 py-2 rounded-md hover:bg-accent/50",
+                pathname === "/activities" ? "bg-accent text-accent-foreground font-medium" : "text-[oklch(.145_0_0)]"
+              )}
+              onClick={onItemClick}
+            >
+              <Activity className="h-4 w-4" />
+              <span>{t("sidebar.activities")}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
             <Link
@@ -85,6 +108,94 @@ export function SidebarContent({ navItems, onItemClick }: SidebarContentProps) {
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
+      {/* Admin Section - Only for Super Users */}
+      {(session?.user as any)?.isSuper && (
+        <>
+          {/* Divider */}
+          <div className="my-4 border-t border-border/50" />
+          
+          <div data-slot="sidebar-group-label" data-sidebar="group-label" className="text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-3 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 text-right">
+            مدیریت سیستم
+          </div>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link
+                  href="/qa"
+                  className={cn(
+                    "flex items-center gap-2 transition-all duration-200 text-[14px] text-right px-3 py-2 rounded-md hover:bg-accent/50",
+                    pathname === "/qa" ? "bg-accent text-accent-foreground font-medium" : "text-[oklch(.145_0_0)]"
+                  )}
+                  onClick={onItemClick}
+                >
+                  <Shield className="h-4 w-4" />
+                  <span>نظارت و تایید</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link
+                  href="/approved-versions"
+                  className={cn(
+                    "flex items-center gap-2 transition-all duration-200 text-[14px] text-right px-3 py-2 rounded-md hover:bg-accent/50",
+                    pathname === "/approved-versions" ? "bg-accent text-accent-foreground font-medium" : "text-[oklch(.145_0_0)]"
+                  )}
+                  onClick={onItemClick}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  <span>نسخه‌های تایید شده</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link
+                  href="/admin-users"
+                  className={cn(
+                    "flex items-center gap-2 transition-all duration-200 text-[14px] text-right px-3 py-2 rounded-md hover:bg-accent/50",
+                    pathname === "/admin-users" ? "bg-accent text-accent-foreground font-medium" : "text-[oklch(.145_0_0)]"
+                  )}
+                  onClick={onItemClick}
+                >
+                  <User className="h-4 w-4" />
+                  <span>{t("sidebar.adminUsers")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link
+                  href="/admin-projects"
+                  className={cn(
+                    "flex items-center gap-2 transition-all duration-200 text-[14px] text-right px-3 py-2 rounded-md hover:bg-accent/50",
+                    pathname === "/admin-projects" ? "bg-accent text-accent-foreground font-medium" : "text-[oklch(.145_0_0)]"
+                  )}
+                  onClick={onItemClick}
+                >
+                  <Folder className="h-4 w-4" />
+                  <span>{t("sidebar.adminProjects")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link
+                  href="/admin-activities"
+                  className={cn(
+                    "flex items-center gap-2 transition-all duration-200 text-[14px] text-right px-3 py-2 rounded-md hover:bg-accent/50",
+                    pathname === "/admin-activities" ? "bg-accent text-accent-foreground font-medium" : "text-[oklch(.145_0_0)]"
+                  )}
+                  onClick={onItemClick}
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span>{t("sidebar.adminActivities")}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </>
+      )}
     </div>
   );
 }
@@ -93,8 +204,31 @@ export function SidebarFooter() {
   const { t } = useI18n();
   const { data: session } = useSession();
 
-  const handleSignOut = () => {
-    signOut({ callbackUrl: '/' });
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return; // Prevent multiple clicks
+    
+    setIsSigningOut(true);
+    
+    try {
+      // Clear session first, then redirect
+      await signOut({ 
+        callbackUrl: '/sign-in',
+        redirect: false
+      });
+      
+      // Force page reload and redirect
+      window.location.replace('/sign-in');
+      
+    } catch (error) {
+      console.error('خطا در خروج از سیستم:', error);
+      // Force redirect regardless of error
+      window.location.replace('/sign-in');
+    } finally {
+      // Reset state in case user stays on page
+      setTimeout(() => setIsSigningOut(false), 1000);
+    }
   };
 
   // Get user data from session
@@ -144,9 +278,13 @@ export function SidebarFooter() {
                 {t("sidebar.profile")}
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2">
-              <LogOut className="h-4 w-4" />
-              {t("sidebar.logout")}
+            <DropdownMenuItem 
+              onClick={handleSignOut} 
+              className="text-red-600 cursor-pointer"
+              disabled={isSigningOut}
+            >
+              <LogOut className={`ml-2 h-4 w-4 ${isSigningOut ? 'animate-spin' : ''}`} />
+              <span>{isSigningOut ? 'در حال خروج...' : t("sidebar.signOut")}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

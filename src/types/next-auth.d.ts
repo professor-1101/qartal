@@ -8,6 +8,9 @@ declare module "next-auth" {
       firstName?: string
       lastName?: string
       image?: string
+      isSuper?: boolean
+      isActive?: boolean
+      autoSave?: boolean
     }
   }
 
@@ -17,6 +20,9 @@ declare module "next-auth" {
     firstName?: string
     lastName?: string
     image?: string
+    isSuper?: boolean
+    isActive?: boolean
+    autoSave?: boolean
   }
 }
 
@@ -25,5 +31,8 @@ declare module "next-auth/jwt" {
     id: string
     firstName?: string
     lastName?: string
+    isSuper?: boolean
+    isActive?: boolean
+    autoSave?: boolean
   }
 } 

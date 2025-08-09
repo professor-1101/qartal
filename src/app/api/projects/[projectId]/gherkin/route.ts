@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
+import { ActivityLogger } from "@/lib/activity-logger";
 
 // GET /api/projects/[projectId]/gherkin - Get all Gherkin files for a project
 export async function GET(
@@ -133,6 +134,10 @@ export async function POST(
             });
             return gherkinFile;
         });
+
+        // Log Gherkin file creation activity
+        await ActivityLogger.logGherkinFileCreated(user.id, projectId, project.name, name);
+
         return NextResponse.json(result, { status: 201 });
     } catch (error) {
         console.error("Error creating Gherkin file:", error);

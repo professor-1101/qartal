@@ -70,14 +70,14 @@ export function ShareProjectDialog({ open, onOpenChange, project}: ShareProjectD
                     toast.success("لینک با موفقیت کپی شد!");
                     setTimeout(() => setCopied(false), 2000);
                 } catch (err) {
-                    console.error('Fallback copy failed:', err);
+                    console.error('خطا در کپی کردن:', err);
                     toast.error("خطا در کپی کردن لینک. لطفاً دستی کپی کنید.");
                 } finally {
                     document.body.removeChild(textArea);
                 }
             }
         } catch (error) {
-            console.error('Copy failed:', error);
+            console.error('خطا در کپی کردن:', error);
             toast.error("خطا در کپی کردن لینک. لطفاً دستی کپی کنید.");
         }
     };

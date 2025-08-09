@@ -16,6 +16,8 @@ interface FormFieldProps {
   inputClassName?: string;
   textareaClassName?: string;
   ariaLabel?: string;
+  maxWords?: number;
+  showWordCount?: boolean;
 }
 
 export function FormField({
@@ -28,8 +30,25 @@ export function FormField({
   className,
   inputClassName,
   textareaClassName,
-  ariaLabel
+  ariaLabel,
+  maxWords,
+  showWordCount = false
 }: FormFieldProps) {
+  const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
+  const isOverLimit = maxWords && wordCount > maxWords;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    if (maxWords) {
+      const newWordCount = newValue.trim() ? newValue.trim().split(/\s+/).length : 0;
+      if (newWordCount <= maxWords) {
+        onChange(newValue);
+      }
+    } else {
+      onChange(newValue);
+    }
+  };
+
   return (
     <div className={cn("space-y-2", className)}>
       <Label htmlFor={id} className="text-sm font-medium">
@@ -39,7 +58,7 @@ export function FormField({
         <Input
           id={id}
           value={value}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+          onChange={handleChange}
           placeholder={placeholder}
           className={cn("h-11", inputClassName)}
           aria-label={ariaLabel || label}
@@ -48,11 +67,21 @@ export function FormField({
         <Textarea
           id={id}
           value={value}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value)}
+          onChange={handleChange}
           placeholder={placeholder}
           className={cn("min-h-[120px] resize-none", textareaClassName)}
           aria-label={ariaLabel || label}
         />
+      )}
+      {showWordCount && (
+        <div className="flex justify-between items-center text-xs text-muted-foreground">
+          <span>تعداد کلمات: {wordCount}</span>
+          {maxWords && (
+            <span className={isOverLimit ? "text-destructive" : ""}>
+              {wordCount}/{maxWords}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );

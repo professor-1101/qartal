@@ -86,6 +86,8 @@ export function EditProjectDialog({
             placeholder={t('projects.form.descriptionPlaceholder')}
             type="textarea"
             ariaLabel={t('projects.form.projectDescription')}
+            maxWords={200}
+            showWordCount={true}
           />
         </div>
         <DialogFooter className="gap-3">
