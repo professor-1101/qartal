@@ -32,7 +32,7 @@ export function generateShortUrl(projectId: string): string {
   }
 
   // Fallback for server-side rendering
-  return `https://localhost:3000/s/${shortCode}`;
+  return `http://localhost:3000/s/${shortCode}`;
 }
 
 export const toPersianDigits = (input: string | number): string => {

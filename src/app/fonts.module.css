@@ -1,3 +1,4 @@
+/* Dana Font Family - Fixed paths and fallbacks */
 @font-face {
   font-family: 'Dana';
   src: url('/fonts/woff2/Dana-Regular.woff2') format('woff2');
@@ -20,4 +21,9 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
+}
+
+/* Fallback for when Dana fails */
+.dana-fallback {
+  font-family: 'Tahoma', 'Segoe UI', 'Arial', system-ui, sans-serif !important;
 }

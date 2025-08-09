@@ -9,7 +9,7 @@ export default function DashboardPage() {
   const { t } = useI18n();
 
   return (
-    <div className="container py-10">
+    <div className="container-fluid ">
       <div className="mb-8 flex items-center gap-3">
         <Building2 className="h-8 w-8 text-primary" />
         <h1 className="text-3xl font-bold">

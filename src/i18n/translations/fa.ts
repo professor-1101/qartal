@@ -94,9 +94,15 @@ export const fa = {
         pages: "صفحات",
         changelog: "تاریخچه تغییرات",
         docs: "مستندات",
-        activities: "تاریخچه فعالیت‌ها",
+        activities: "فعالیت‌های من",
         profile: "پروفایل",
-        logout: "خروج",
+        admin: "مدیریت",
+        adminUsers: "مدیریت کاربران",
+        adminProjects: "مدیریت پروژه‌ها",
+        adminActivities: "گزارش کل فعالیت‌ها",
+        logout: 'خروج از سیستم',
+        signOut: 'خروج از سیستم',
+        userEmail: 'ایمیل کاربر',
         dashboard: "داشبورد",
         lifecycle: "چرخه عمر",
         analytics: "تحلیل‌ها",
@@ -105,11 +111,10 @@ export const fa = {
         settings: "تنظیمات",
         getHelp: "دریافت راهنما",
         search: "جستجو",
-        companyName: "شرکت نمونه",
-        companySlogan: "راهکارهای نرم‌افزاری با کیفیت",
-        userName: "جان دو",
-        userEmail: "john@example.com",
-        userRole: "مدیر",
+        companyName: "کارتال",
+        companySlogan: "ابزار مدیریت تست‌های BDD",
+        userName: "کاربر نمونه",
+        userRole: "کاربر",
         subscribeTitle: "عضویت در خبرنامه",
         subscribeDescription: "آخرین به‌روزرسانی‌ها و اخبار را دریافت کنید.",
         emailPlaceholder: "ایمیل شما",
@@ -459,6 +464,17 @@ export const fa = {
           REORDER: 'مرتب‌سازی مجدد',
           LOGIN: 'ورود',
           LOGOUT: 'خروج',
+        },
+        actions: {
+          profile_updated: 'بروزرسانی پروفایل',
+          password_changed: 'تغییر رمز عبور',
+          user_registered: 'ثبت نام کاربر'
         }
-      }
+      },
+    admin: {
+      title: "داشبورد مدیریتی سوپر یوزر",
+      description: "در این بخش می‌توانید کاربران، پروژه‌ها و فعالیت‌ها را مدیریت کنید.",
+      noAccess: "دسترسی غیرمجاز",
+      onlySuperuser: "این بخش فقط برای سوپر یوزرها فعال است."
+    }
 };

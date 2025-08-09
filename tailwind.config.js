@@ -18,9 +18,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        inter: ["Inter", "system-ui", "sans-serif"],
-        dana: ['Dana', 'system-ui', 'sans-serif'],
-        sans: ['Dana', 'system-ui', 'sans-serif'],
+        inter: ["Inter", "Tahoma", "Segoe UI", "Arial", "system-ui", "sans-serif"],
+        dana: ['Dana', 'Tahoma', 'Segoe UI', 'Arial', 'system-ui', 'sans-serif'],
+        sans: ['Dana', 'Tahoma', 'Segoe UI', 'Arial', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -12,15 +12,19 @@ import { GherkinEditorRuleModal } from "./GherkinEditorRuleModal";
 import { useGherkinEditorLogic } from "./useGherkinEditorLogic";
 import { GherkinPreview } from "./GherkinPreview";
 import { deepNormalizeFeature } from '@/lib/deepNormalize';
+import { useAutoSave } from '@/components/providers/autosave-context';
 
 interface GherkinEditorProps {
     feature: Feature;
+    dirty?: boolean;
     onFeatureChange: (feature: Feature) => void;
+    onManualSave?: () => Promise<void>;
 }
 
-export function GherkinEditor({ feature: initialFeature, onFeatureChange }: GherkinEditorProps) {
+export function GherkinEditor({ feature: initialFeature, dirty: externalDirty, onFeatureChange, onManualSave }: GherkinEditorProps) {
     const normalizedFeature = deepNormalizeFeature(initialFeature);
-    const logic = useGherkinEditorLogic(normalizedFeature);
+    const logic = useGherkinEditorLogic(normalizedFeature, onFeatureChange);
+    const { isAutoSaving, lastSaved, isAutoSaveEnabled } = useAutoSave();
 
     return (
         <TooltipProvider delayDuration={300}>
@@ -32,10 +36,19 @@ export function GherkinEditor({ feature: initialFeature, onFeatureChange }: Gher
                             featureName={logic.feature.name}
                             featureDescription={logic.feature.description}
                             tags={logic.feature.tags}
-                            dirty={logic.dirty}
-                            onSave={() => {
-                                onFeatureChange(logic.feature);
-                                logic.setDirty(false);
+                            dirty={externalDirty !== undefined ? externalDirty : logic.dirty}
+                            isAutoSaving={isAutoSaving}
+                            isAutoSaveEnabled={isAutoSaveEnabled}
+                            lastSaved={lastSaved}
+                            onSave={async () => {
+                                if (onManualSave) {
+                                    await onManualSave();
+                                    logic.setDirty(false);
+                                } else {
+                                    // Fallback to feature change
+                                    onFeatureChange(logic.feature);
+                                    logic.setDirty(false);
+                                }
                             }}
                             onFeatureNameChange={logic.handleFeatureNameChange}
                             onFeatureDescriptionChange={logic.handleFeatureDescriptionChange}

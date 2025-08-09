@@ -90,27 +90,27 @@ export async function PUT(
             );
         }
 
-                const { name, description } = await request.json();
+        const { name, description } = await request.json();
 
         if (!name) {
-          return NextResponse.json(
-            { error: "Project name is required" },
-            { status: 400 }
-          );
+            return NextResponse.json(
+                { error: "Project name is required" },
+                { status: 400 }
+            );
         }
 
         const project = await prisma.project.findFirst({
-          where: {
-            id: projectId,
-            userId: user.id
-          }
+            where: {
+                id: projectId,
+                userId: user.id
+            }
         });
 
         if (!project) {
-          return NextResponse.json(
-            { error: "Project not found" },
-            { status: 404 }
-          );
+            return NextResponse.json(
+                { error: "Project not found" },
+                { status: 404 }
+            );
         }
 
         // Track changes for activity logging
@@ -119,21 +119,21 @@ export async function PUT(
         if (description !== project.description) changes.description = { old: project.description, new: description };
 
         const updatedProject = await prisma.project.update({
-          where: { id: projectId },
-          data: {
-            name,
-            description,
-            updatedAt: new Date(), // Force update the timestamp
-          },
-          include: {
-            gherkinFiles: true,
-            _count: {
-              select: {
-                features: true,
-                gherkinFiles: true
-              }
+            where: { id: projectId },
+            data: {
+                name,
+                description,
+                updatedAt: new Date(), // Force update the timestamp
+            },
+            include: {
+                gherkinFiles: true,
+                _count: {
+                    select: {
+                        features: true,
+                        gherkinFiles: true
+                    }
+                }
             }
-          }
         });
 
         // Log project update activity if there were changes
@@ -185,18 +185,26 @@ export async function DELETE(
             }
         });
 
-                if (!project) {
-          return NextResponse.json(
-            { error: "Project not found" },
-            { status: 404 }
-          );
+        if (!project) {
+            return NextResponse.json(
+                { error: "Project not found" },
+                { status: 404 }
+            );
         }
 
-        // Log project deletion activity
-        await ActivityLogger.logProjectDeleted(user.id, projectId, project.name);
+        // Log project deletion activity (store deletedProjectId in metadata only)
+        await prisma.activity.create({
+          data: {
+            userId: user.id,
+            type: 'DELETE',
+            action: 'project_deleted',
+            description: `پروژه "${project.name}" حذف شد`,
+            metadata: { projectName: project.name, deletedProjectId: projectId }
+          }
+        });
 
         await prisma.project.delete({
-          where: { id: projectId }
+            where: { id: projectId }
         });
 
         return NextResponse.json({ message: "Project deleted successfully" });

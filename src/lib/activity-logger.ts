@@ -56,13 +56,14 @@ export class ActivityLogger {
   }
 
   static async logProjectDeleted(userId: string, projectId: string, projectName: string) {
+    // مهم: projectId را ذخیره نکن تا با حذف پروژه، activity به‌صورت cascade حذف نشود
     await this.log({
       userId,
       type: 'DELETE',
       action: 'project_deleted',
       description: `پروژه "${projectName}" حذف شد`,
-      metadata: { projectName },
-      projectId,
+      metadata: { projectName, deletedProjectId: projectId },
+      // projectId: undefined
     });
   }
 
@@ -85,6 +86,38 @@ export class ActivityLogger {
       description: `پروژه "${projectName}" دانلود شد`,
       metadata: { projectName },
       projectId,
+    });
+  }
+
+  // User Settings Activities
+  static async logProfileUpdated(userId: string, changes: { oldEmail?: string, newEmail?: string, oldFirstName?: string, newFirstName?: string, oldLastName?: string, newLastName?: string }) {
+    const changesList = [];
+    if (changes.oldEmail !== changes.newEmail) {
+      changesList.push(`ایمیل از ${changes.oldEmail} به ${changes.newEmail} تغییر کرد`);
+    }
+    if (changes.oldFirstName !== changes.newFirstName) {
+      changesList.push(`نام از ${changes.oldFirstName} به ${changes.newFirstName} تغییر کرد`);
+    }
+    if (changes.oldLastName !== changes.newLastName) {
+      changesList.push(`نام خانوادگی از ${changes.oldLastName} به ${changes.newLastName} تغییر کرد`);
+    }
+
+    await this.log({
+      userId,
+      type: 'UPDATE',
+      action: 'profile_updated',
+      description: `پروفایل کاربری بروزرسانی شد: ${changesList.join(', ')}`,
+      metadata: { changes },
+    });
+  }
+
+  static async logPasswordChanged(userId: string) {
+    await this.log({
+      userId,
+      type: 'UPDATE',
+      action: 'password_changed',
+      description: 'رمز عبور تغییر یافت',
+      metadata: {},
     });
   }
 

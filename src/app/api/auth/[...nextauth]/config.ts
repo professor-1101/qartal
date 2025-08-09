@@ -29,6 +29,11 @@ export const authOptions: AuthOptions = {
                     return null;
                 }
 
+                // Check if user is active
+                if (!(user as any).isActive) {
+                    return null;
+                }
+
                 const isPasswordValid = await bcrypt.compare(
                     credentials.password,
                     (user as any).password
@@ -38,11 +43,22 @@ export const authOptions: AuthOptions = {
                     return null;
                 }
 
+                // Check if user should be super user based on ENV
+                const superUserEmails = process.env.SUPERUSER_EMAILS?.split(',').map(email => email.trim()) || [];
+                console.log('SUPERUSER_EMAILS from ENV:', process.env.SUPERUSER_EMAILS);
+                console.log('SuperUser emails array:', superUserEmails);
+                console.log('Current login email:', credentials.email);
+                const isSuper = superUserEmails.includes(credentials.email) || (user as any).isSuper;
+                console.log('Is user super?', isSuper);
+
                 return {
                     id: user.id,
                     email: user.email!,
                     firstName: (user as any).firstName,
                     lastName: (user as any).lastName,
+                    isSuper: isSuper, // Use calculated value
+                    isActive: (user as any).isActive,
+                    autoSave: (user as any).autoSave,
                 };
             }
         })
@@ -52,7 +68,7 @@ export const authOptions: AuthOptions = {
     },
     pages: {
         signIn: "/sign-in",
-        signOut: "/",
+        signOut: "/sign-in",
         error: "/sign-in",
     },
     callbacks: {
@@ -62,7 +78,26 @@ export const authOptions: AuthOptions = {
                 token.firstName = user.firstName;
                 token.lastName = user.lastName;
                 token.email = user.email;
+                token.isSuper = user.isSuper;
+                token.isActive = user.isActive; // اضافه شد - مهم!
+                token.autoSave = user.autoSave;
             }
+            
+            // IMPORTANT: Check for superuser status on every JWT refresh
+            if (token.email) {
+                const superUserEmails = process.env.SUPERUSER_EMAILS?.split(',').map(email => email.trim()) || [];
+                console.log('JWT CALLBACK - SUPERUSER_EMAILS from ENV:', process.env.SUPERUSER_EMAILS);
+                console.log('JWT CALLBACK - SuperUser emails array:', superUserEmails);
+                console.log('JWT CALLBACK - Token email:', token.email);
+                const shouldBeSuper = superUserEmails.includes(token.email as string);
+                console.log('JWT CALLBACK - Should be super?', shouldBeSuper);
+                
+                // Update token with ENV-based superuser status
+                token.isSuper = shouldBeSuper;
+                console.log('JWT CALLBACK - Updated token.isSuper to:', token.isSuper);
+            }
+            
+            console.log("JWT CALLBACK TOKEN:", token); // debug
             return token;
         },
         async session({ session, token }: any) {
@@ -70,16 +105,33 @@ export const authOptions: AuthOptions = {
                 // اطلاعات جدید را از دیتابیس بخوان
                 const user = await prisma.user.findUnique({
                     where: { email: token.email },
-                    select: { id: true, firstName: true, lastName: true, email: true, image: true }
+                    select: { id: true, firstName: true, lastName: true, email: true, image: true, isSuper: true, isActive: true, autoSave: true }
                 });
                 if (user) {
+                    // Check if user is still active
+                    if (!user.isActive) {
+                        // Force logout if user is deactivated
+                        console.log("User is inactive, forcing logout:", user.email);
+                        return null;
+                    }
+                    // Override with ENV-based superuser status
+                    const superUserEmails = process.env.SUPERUSER_EMAILS?.split(',').map(email => email.trim()) || [];
+                    const shouldBeSuper = superUserEmails.includes(user.email!) || user.isSuper;
+                    
+                    console.log('SESSION CALLBACK - SUPERUSER_EMAILS:', process.env.SUPERUSER_EMAILS);
+                    console.log('SESSION CALLBACK - Should be super?', shouldBeSuper);
+                    
                     session.user.id = user.id;
                     session.user.firstName = user.firstName;
                     session.user.lastName = user.lastName;
                     session.user.email = user.email;
                     session.user.image = user.image;
+                    session.user.isSuper = shouldBeSuper; // Use ENV-based value
+                    session.user.isActive = user.isActive;
+                    session.user.autoSave = user.autoSave;
                 }
             }
+            console.log("SESSION CALLBACK SESSION:", session); // debug
             return session;
         },
         async signIn({ user  }) {

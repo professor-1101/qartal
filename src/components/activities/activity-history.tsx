@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -61,26 +61,47 @@ interface ActivityHistoryProps {
   className?: string;
 }
 
-const activityIcons = {
-  CREATE: Plus,
-  UPDATE: Edit,
-  DELETE: Trash2,
-  IMPORT: Upload,
-  EXPORT: Download,
-  REORDER: ArrowUpDown,
-  LOGIN: User,
-  LOGOUT: User,
+// یکپارچه‌سازی با AdminActivitiesTable
+const getActivityIcon = (type: string, action: string) => {
+  switch (type) {
+    case "CREATE":
+      if (action.includes("project")) return <FileText className="h-4 w-4 text-blue-500" />;
+      if (action.includes("feature")) return <Layers className="h-4 w-4 text-green-500" />;
+      if (action.includes("scenario")) return <Layers className="h-4 w-4 text-purple-500" />;
+      if (action.includes("user")) return <User className="h-4 w-4 text-orange-500" />;
+      return <Plus className="h-4 w-4 text-blue-500" />;
+    case "UPDATE":
+      return <Edit className="h-4 w-4 text-yellow-500" />;
+    case "DELETE":
+      return <Trash2 className="h-4 w-4 text-red-500" />;
+    case "IMPORT":
+      return <Upload className="h-4 w-4 text-indigo-500" />;
+    case "EXPORT":
+      return <Download className="h-4 w-4 text-teal-500" />;
+    case "REORDER":
+      return <ArrowUpDown className="h-4 w-4 text-gray-500" />;
+    case "LOGIN":
+      return <User className="h-4 w-4 text-green-600" />;
+    case "LOGOUT":
+      return <User className="h-4 w-4 text-red-600" />;
+    default:
+      return <Activity className="h-4 w-4 text-gray-500" />;
+  }
 };
 
-const activityColors = {
-  CREATE: 'bg-green-100 text-green-800 border-green-200',
-  UPDATE: 'bg-blue-100 text-blue-800 border-blue-200',
-  DELETE: 'bg-red-100 text-red-800 border-red-200',
-  IMPORT: 'bg-purple-100 text-purple-800 border-purple-200',
-  EXPORT: 'bg-orange-100 text-orange-800 border-orange-200',
-  REORDER: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  LOGIN: 'bg-gray-100 text-gray-800 border-gray-200',
-  LOGOUT: 'bg-gray-100 text-gray-800 border-gray-200',
+const getTypeBadge = (type: string) => {
+  const colorMap: Record<string, string> = {
+    CREATE: "default",
+    UPDATE: "secondary", 
+    DELETE: "destructive",
+    IMPORT: "outline",
+    EXPORT: "outline",
+    REORDER: "secondary",
+    LOGIN: "default",
+    LOGOUT: "outline",
+  };
+  
+  return colorMap[type] || "outline";
 };
 
 export function ActivityHistory({
@@ -108,7 +129,7 @@ export function ActivityHistory({
     return translation;
   };
 
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -138,23 +159,23 @@ export function ActivityHistory({
         setActivities(data.activities || []);
         setTotalPages(data.pagination?.pages || 1);
       } else {
-        console.error('Fetch failed with status:', response.status);
+        console.error('خطا در دریافت با وضعیت:', response.status);
         setActivities([]);
         setTotalPages(1);
       }
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error('خطا در دریافت فعالیت‌ها:', error);
       setActivities([]);
       setTotalPages(1);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filterType, searchTerm, filterDate, selectedDate, projectId]);
 
   // واکنش به تغییرات فیلترها یا صفحه
   useEffect(() => {
     fetchActivities();
-  }, [page, filterType, searchTerm, filterDate, selectedDate, projectId]);
+  }, [fetchActivities]);
 
   const formatDate = (dateString: string) => {  
     const date = new Date(dateString);
@@ -177,20 +198,7 @@ export function ActivityHistory({
     }
   };
 
-  // آیکون هر نوع اکتیویتی
-  const getActivityIcon = (type: string) => {
-    const IconComponent =
-      activityIcons[type as keyof typeof activityIcons] || Activity;
-    return <IconComponent className="h-4 w-4" />;
-  };
-
-  // رنگ‌بندی هر نوع اکتیویتی
-  const getActivityColor = (type: string) => {
-    return (
-      activityColors[type as keyof typeof activityColors] ||
-      'bg-gray-100 text-gray-800 border-gray-200'
-    );
-  };
+  // حذف شد - توابع جابجا شدند به بالا
 
   return (
     <Card className={className}>
@@ -221,7 +229,7 @@ export function ActivityHistory({
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 text-right">
                 <SelectValue 
                   placeholder={translate('activities.filterTypeLabel', 'فیلتر بر اساس نوع')} 
                 />
@@ -265,7 +273,7 @@ export function ActivityHistory({
                 if (value !== 'exact') setSelectedDate(undefined);
               }}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 text-right">
                 <SelectValue 
                   placeholder={translate('activities.filterDateLabel', 'فیلتر بر اساس تاریخ')} 
                 />
@@ -322,20 +330,13 @@ export function ActivityHistory({
                 className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="flex-shrink-0">
-                  <div
-                    className={`p-2 rounded-full ${getActivityColor(
-                      activity.type
-                    )}`}
-                  >
-                    {getActivityIcon(activity.type)}
+                  <div className="p-2 rounded-full bg-background border">
+                    {getActivityIcon(activity.type, activity.action)}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <Badge
-                      variant="outline"
-                      className={getActivityColor(activity.type)}
-                    >
+                    <Badge variant={getTypeBadge(activity.type) as any}>
                       {translate(
                         `activities.activityTypes.${activity.type}`,
                         activity.type

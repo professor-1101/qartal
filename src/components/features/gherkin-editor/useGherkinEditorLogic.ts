@@ -102,7 +102,7 @@ const defaultFeature: Feature = {
   order: 0,
 };
 
-export function useGherkinEditorLogic(initialFeature: Feature) {
+export function useGherkinEditorLogic(initialFeature: Feature, onFeatureChange?: (feature: Feature) => void) {
   // نرمالایز عمیق داده اولیه
   const normalizedInitial = deepNormalizeFeature(initialFeature);
   const [feature, setFeature] = useState<Feature>(normalizedInitial || defaultFeature);
@@ -126,6 +126,29 @@ export function useGherkinEditorLogic(initialFeature: Feature) {
     const dirtyNow = !isEqual(normFeature, normInitial);
     if (dirty !== dirtyNow) setDirty(dirtyNow);
   }, [feature, initialFeature, dirty]);
+
+  // Notify parent component when feature changes (but avoid initial trigger and loops)
+  const isInitialMount = useRef(true);
+  const lastNotifiedFeature = useRef<Feature | null>(null);
+  
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      lastNotifiedFeature.current = feature;
+      return;
+    }
+    
+    // Only notify if feature actually changed (deep comparison)
+    if (onFeatureChange && feature !== lastNotifiedFeature.current) {
+      const normCurrent = normalizeFeature(feature);
+      const normLast = lastNotifiedFeature.current ? normalizeFeature(lastNotifiedFeature.current) : null;
+      
+      if (!normLast || !isEqual(normCurrent, normLast)) {
+        lastNotifiedFeature.current = feature;
+        onFeatureChange(feature);
+      }
+    }
+  }, [feature, onFeatureChange]);
 
   const gherkinText = useMemo(() => {
     return gherkinBusinessLogic.generateGherkinText(feature);

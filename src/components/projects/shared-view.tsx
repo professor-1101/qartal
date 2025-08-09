@@ -44,7 +44,7 @@ function StepContent({ step }: { step: Step }) {
             </div>
             {step.dataTable && (
                 <div className="pr-8">
-                    <Table className="bg-background/50 rounded-md">
+                    <Table className="bg-background/50 rounded-md select-none">
                         <TableHeader>
                             <TableRow>
                                 {step.dataTable.headers.map((header, idx) => <TableHead key={idx}>{header}</TableHead>)}
@@ -90,7 +90,7 @@ function ScenarioContent({ scenario }: { scenario: Scenario }) {
                 <div className="space-y-2 pt-3 mt-3">
                     <span className="text-sm font-bold text-gray-800">مثال‌ها:</span>
                     <div className="overflow-x-auto">
-                        <table className="w-auto min-w-max border-separate border-spacing-0 text-sm" style={{ borderCollapse: 'separate' }}>
+                        <table className="w-auto min-w-max border-separate border-spacing-0 text-sm select-none" style={{ borderCollapse: 'separate' }}>
                             <thead>
                                 <tr>
                                     {(scenario.examples?.headers || []).map((h, i) => (
@@ -173,12 +173,12 @@ function TableOfContents({ features, scrollTo }: { features: Feature[], scrollTo
                             <div className="group flex items-center w-full rounded-md hover:bg-muted">
                                 <button
                                     onClick={() => scrollTo(`feature-${feature.id}`)}
-                                    className="flex-1 flex items-center gap-2 text-right p-2 text-sm font-medium truncate"
+                                    className="flex-1 flex items-center gap-2 text-right p-2 text-sm font-medium truncate cursor-pointer"
                                 >
                                     <BookText className="w-4 h-4 text-muted-foreground shrink-0" />
                                     <span>{feature.name}</span>
                                 </button>
-                                <button onClick={() => toggleFeature(feature.id)} className="p-2 text-muted-foreground hover:text-foreground">
+                                <button onClick={() => toggleFeature(feature.id)} className="p-2 text-muted-foreground hover:text-foreground cursor-pointer">
                                     <ChevronsUpDown className="w-4 h-4 shrink-0" />
                                 </button>
                             </div>
@@ -189,7 +189,7 @@ function TableOfContents({ features, scrollTo }: { features: Feature[], scrollTo
                                         <li key={rule.id}>
                                             <button
                                                 onClick={() => scrollTo(`rule-${rule.id}`)}
-                                                className="w-full flex items-center gap-2 text-right p-1.5 pr-2 rounded hover:bg-muted transition-colors text-xs"
+                                                className="w-full flex items-center gap-2 text-right p-1.5 pr-2 rounded hover:bg-muted transition-colors text-xs cursor-pointer"
                                             >
                                                 <Combine className="w-3.5 h-3.5 text-muted-foreground/80 shrink-0" />
                                                 <span className="truncate">{rule.name}</span>
@@ -200,7 +200,7 @@ function TableOfContents({ features, scrollTo }: { features: Feature[], scrollTo
                                         <li key={scenario.id}>
                                             <button
                                                 onClick={() => scrollTo(`scenario-${scenario.id}`)}
-                                                className="w-full flex items-center gap-2 text-right p-1.5 pr-2 rounded hover:bg-muted transition-colors text-xs"
+                                                className="w-full flex items-center gap-2 text-right p-1.5 pr-2 rounded hover:bg-muted transition-colors text-xs cursor-pointer"
                                             >
                                                 <Layers className="w-3.5 h-3.5 text-muted-foreground/80 shrink-0" />
                                                 <span className="truncate">{scenario.name}</span>
@@ -244,7 +244,7 @@ export function SharedProjectView({ project, features = [] }: SharedProjectViewP
     };
 
     return (
-        <div className="min-h-screen bg-muted/20">
+        <div className="min-h-screen bg-muted/20 select-none">
             {/* Fixed Header */}
             <header className="border-b ">
                 <div className="container mx-auto px-4 py-4">

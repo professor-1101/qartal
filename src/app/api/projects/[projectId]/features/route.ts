@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
 import { ActivityLogger } from "@/lib/activity-logger";
+// auto-versioning disabled; publish endpoint handles versioning explicitly
 
 // POST /api/projects/[projectId]/features - Create a new feature for a project
 export async function POST(
@@ -44,6 +45,13 @@ export async function POST(
                 { error: "Project not found" },
                 { status: 404 }
             );
+        }
+
+        // Check if project is locked
+        if (project.isLocked) {
+            return NextResponse.json({ 
+                error: "پروژه قفل است و در انتظار تایید QA Manager می‌باشد" 
+            }, { status: 423 }); // 423 = Locked
         }
 
         const { name, description } = await request.json();
@@ -89,6 +97,8 @@ export async function POST(
 
         // Log feature creation activity
         await ActivityLogger.logFeatureCreated(user.id, projectId, result.id, result.name);
+
+        // Auto-versioning disabled: only create versions on explicit publish
 
         return NextResponse.json(result, { status: 201 });
     } catch (error) {

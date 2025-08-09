@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/config";
 import { prisma } from "@/lib/prisma";
+import { ActivityLogger } from "@/lib/activity-logger";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -41,6 +42,19 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Get current user data for change tracking
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, firstName: true, lastName: true, email: true }
+    });
+
+    if (!currentUser) {
+      return NextResponse.json(
+        { message: "User not found" },
+        { status: 404 }
+      );
+    }
+
     // Update user profile
     const updatedUser = await prisma.user.update({
       where: { email: session.user.email },
@@ -49,6 +63,16 @@ export async function PUT(request: NextRequest) {
         lastName,
         email
       }
+    });
+
+    // Log profile update activity
+    await ActivityLogger.logProfileUpdated(currentUser.id, {
+      oldEmail: currentUser.email || '',
+      newEmail: email,
+      oldFirstName: currentUser.firstName || '',
+      newFirstName: firstName,
+      oldLastName: currentUser.lastName || '',
+      newLastName: lastName
     });
 
     return NextResponse.json({

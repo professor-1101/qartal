@@ -29,13 +29,15 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
+    // Create user with explicit active status
     const user = await prisma.user.create({
       data: {
         firstName,
         lastName,
         email,
         password: hashedPassword,
+        isActive: true, // Explicitly set as active
+        isSuper: false, // Explicitly set as regular user
       },
     });
 

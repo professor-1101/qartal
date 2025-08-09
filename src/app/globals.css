@@ -107,11 +107,33 @@
 @layer base {
     * {
         @apply border-border;
+        cursor: default; /* Fix cursor issue */
     }
 
     body {
         @apply bg-background text-foreground;
-        font-family: 'Dana', 'system-ui', 'sans-serif';
+        font-family: 'Dana', 'Tahoma', 'Segoe UI', 'Arial', system-ui, sans-serif;
+        cursor: default;
+    }
+    
+    /* Fix specific text cursor issues */
+    input[type="text"], 
+    input[type="email"], 
+    input[type="password"], 
+    textarea {
+        cursor: text !important;
+    }
+    
+    button, 
+    a, 
+    [role="button"], 
+    .cursor-pointer {
+        cursor: pointer !important;
+    }
+    
+    /* Override any text cursor on non-input elements */
+    p, div, span, h1, h2, h3, h4, h5, h6, li, td, th {
+        cursor: default !important;
     }
 
     html,

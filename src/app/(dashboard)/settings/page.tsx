@@ -8,16 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { User, Shield } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { User, Shield, Settings, Cloud } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useSession } from "next-auth/react";
 import { toast } from "@/components/ui/use-toast";
 import DashboardPageHeader from "@/components/layout/DashboardPageHeader";
 import { signIn } from "next-auth/react";
+import { useAutoSave } from "@/components/providers/autosave-context";
 
 export default function SettingsPage() {
   const { t } = useI18n();
   const { data: session, update } = useSession();
+  const { isAutoSaveEnabled, setAutoSaveEnabled } = useAutoSave();
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,6 +36,13 @@ export default function SettingsPage() {
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
+  });
+
+  // Azure DevOps settings state
+  const [azureSettings, setAzureSettings] = useState({
+    apiUrl: "",
+    tfsUrl: "",
+    token: ""
   });
 
   // Load user data when session is available
@@ -139,6 +149,55 @@ export default function SettingsPage() {
     }
   };
 
+  const handleAzureSettingsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/user/azure-settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(azureSettings),
+      });
+
+      if (response.ok) {
+        toast.success("تنظیمات Azure DevOps با موفقیت ذخیره شد");
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || "خطا در ذخیره تنظیمات Azure");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "خطا در ذخیره تنظیمات Azure");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load Azure settings
+  useEffect(() => {
+    const loadAzureSettings = async () => {
+      try {
+        const response = await fetch("/api/user/azure-settings");
+        if (response.ok) {
+          const settings = await response.json();
+          setAzureSettings({
+            apiUrl: settings.apiUrl || "",
+            tfsUrl: settings.tfsUrl || "",
+            token: settings.token || ""
+          });
+        }
+      } catch (error) {
+        console.error("Error loading Azure settings:", error);
+      }
+    };
+
+    if (session?.user) {
+      loadAzureSettings();
+    }
+  }, [session]);
+
   const tabs = [
     {
       id: "profile",
@@ -147,11 +206,24 @@ export default function SettingsPage() {
       description: t("settings.profileDescription")
     },
     {
+      id: "preferences",
+      label: "تنظیمات",
+      icon: Settings,
+      description: "تنظیمات عمومی و ترجیحات"
+    },
+    {
       id: "security",
       label: t("settings.security"),
       icon: Shield,
       description: t("settings.securityDescription")
-    }
+    },
+    // Azure tab only for super users
+    ...((session?.user as any)?.isSuper ? [{
+      id: "azure",
+      label: "همگام‌سازی Azure",
+      icon: Cloud,
+      description: "تنظیمات Azure DevOps و TFS"
+    }] : [])
   ];
 
   return (
@@ -252,6 +324,48 @@ export default function SettingsPage() {
             </Card>
           )}
 
+          {activeTab === "preferences" && (
+            <Card className="max-w-2xl">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center gap-2 text-xl text-right">
+                  <Settings className="h-5 w-5" />
+                  تنظیمات
+                </CardTitle>
+                <CardDescription className="text-right text-base">
+                  تنظیمات عمومی و ترجیحات کاربری
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Auto-save Setting */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5 text-right">
+                    <Label className="text-base">ذخیره خودکار</Label>
+                    <div className="text-sm text-muted-foreground">
+                      تغییرات شما به صورت خودکار ذخیره می‌شود
+                    </div>
+                  </div>
+                  <Switch
+                    checked={isAutoSaveEnabled}
+                    onCheckedChange={setAutoSaveEnabled}
+                  />
+                </div>
+                
+                <Separator />
+                
+                {/* Auto-save Info */}
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <h4 className="font-medium mb-2 text-sm text-right">درباره ذخیره خودکار</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1 text-right">
+                    <li>• تغییرات شما ۳ ثانیه پس از آخرین ویرایش ذخیره می‌شود</li>
+                    <li>• در صورت قطع اینترنت، تغییرات در مرورگر نگهداری می‌شود</li>
+                    <li>• هنگام برقراری مجدد اتصال، تغییرات همگام‌سازی می‌شود</li>
+                    <li>• می‌توانید در هر زمان این قابلیت را فعال یا غیرفعال کنید</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {activeTab === "security" && (
             <Card className="max-w-2xl">
               <CardHeader className="pb-6">
@@ -314,6 +428,89 @@ export default function SettingsPage() {
                   <div className="flex justify-end">
                     <Button type="submit" disabled={isLoading} size="sm">
                       {isLoading ? "در حال به‌روزرسانی..." : "به‌روزرسانی گذرواژه"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "azure" && (session?.user as any)?.isSuper && (
+            <Card className="max-w-2xl">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center gap-2 text-xl text-right">
+                  <Cloud className="h-5 w-5" />
+                  همگام‌سازی Azure DevOps
+                </CardTitle>
+                <CardDescription className="text-right text-base">
+                  تنظیمات اتصال به Azure DevOps و TFS برای همگام‌سازی پروژه‌ها
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form onSubmit={handleAzureSettingsSubmit} className="space-y-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="apiUrl" className="text-xs text-right">API URL</Label>
+                    <Input
+                      id="apiUrl"
+                      type="url"
+                      placeholder="http://192.168.10.150:5050/api/v1"
+                      value={azureSettings.apiUrl}
+                      onChange={(e) => setAzureSettings(prev => ({ ...prev, apiUrl: e.target.value }))}
+                      className="h-8 text-sm text-left"
+                      dir="ltr"
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      آدرس API سرور Azure DevOps شما
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="tfsUrl" className="text-xs text-right">Azure DevOps TFS URL</Label>
+                    <Input
+                      id="tfsUrl"
+                      type="url"
+                      placeholder="https://dev.azure.com/yourorg"
+                      value={azureSettings.tfsUrl}
+                      onChange={(e) => setAzureSettings(prev => ({ ...prev, tfsUrl: e.target.value }))}
+                      className="h-8 text-sm text-left"
+                      dir="ltr"
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      آدرس Azure DevOps یا TFS سازمان شما
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="token" className="text-xs text-right">Personal Access Token</Label>
+                    <Input
+                      id="token"
+                      type="password"
+                      placeholder="RPK\\username:token"
+                      value={azureSettings.token}
+                      onChange={(e) => setAzureSettings(prev => ({ ...prev, token: e.target.value }))}
+                      className="h-8 text-sm text-left"
+                      dir="ltr"
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      توکن دسترسی شخصی برای احراز هویت (فرمت: Domain\\Username:Token)
+                    </p>
+                  </div>
+
+                  {/* Azure Integration Info */}
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2 text-sm text-right">درباره همگام‌سازی Azure</h4>
+                    <ul className="text-xs text-muted-foreground space-y-1 text-right">
+                      <li>• پروژه‌های شما به صورت async به Azure DevOps ارسال می‌شود</li>
+                      <li>• وضعیت همگام‌سازی در صفحه پروژه قابل مشاهده است</li>
+                      <li>• نتایج import در دیتابیس ذخیره می‌شود</li>
+                      <li>• در صورت بروز خطا، جزئیات در لاگ‌ها نمایش داده می‌شود</li>
+                    </ul>
+                  </div>
+
+                  <Separator />
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={isLoading} size="sm">
+                      {isLoading ? "در حال ذخیره..." : "ذخیره تنظیمات"}
                     </Button>
                   </div>
                 </form>

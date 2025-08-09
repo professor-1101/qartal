@@ -43,7 +43,7 @@ export function CreateFeatureSheet({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: title.trim(), description }),
       });
-      if (!response.ok) throw new Error('Failed to create feature');
+              if (!response.ok) throw new Error('خطا در ایجاد ویژگی');
       const newFeature = await response.json();
       onFeatureCreated(newFeature);
       onOpenChange(false);
