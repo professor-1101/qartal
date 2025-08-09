@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "pnpm lint && tsc -p . --noEmit",
+    "prebuild": "node -e \"try{require('fs').rmSync('.next',{recursive:true,force:true})}catch(e){}\" && pnpm lint && tsc -p . --noEmit",
     "build": "next build",
     "start": "next start -p 80",
     "lint": "next lint"
